@@ -16,10 +16,10 @@ def get_packages(dirs):
 
 setup(name = "pg_export",
       description="pg_dump -> repo",
-      license="""uiscom license""",
+      license="""BSD""",
       version = "0.4",
       maintainer = "Dima Beloborodov",
-      maintainer_email = "d.beloborodov@ulab.ru",
-      url = "http://uiscom.ru",
+      maintainer_email = "d.beloborodov@gmail.com",
+      url = "http://comagic.ru",
       scripts = ['bin/pg_export'],
       packages = get_packages(['pg_export']))
