@@ -1,0 +1,4 @@
+#!/bin/bash
+
+hg fetch && \
+python2.7 setup.py bdist_rpm --python=python2.7 --release=r`hg log -l1 | grep changeset | sed -e 's/.* \(.*\):.*/\1/g'`
