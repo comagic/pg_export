@@ -617,7 +617,7 @@ class Trigger(PgObjectOfTable):
               join pg_class r on r.oid = tgrelid
               join pg_namespace rn on rn.oid = relnamespace
              where rn.nspname = %(schema)s and relname = %(table)s and tgname =  %(name)s
-          ''', schema=self.schema.name, table=self.table_name.replace('"', ''), name=self.name)[0]['data']
+          ''', schema=self.schema.name, table=self.table_name.replace('"', ''), name=self.name.split(' ')[-1])[0]['data']
 
     def add_schema_name(self):
         if self.table.name in ("group", "user", "position"):
@@ -633,7 +633,7 @@ class Rule(PgObjectOfTable):
             select definition as data
               from pg_rules
              where schemaname = %(schema)s and tablename = %(table)s and rulename = %(name)s
-          ''', schema=self.schema.name, table=self.dequote(self.table_name), name=self.name)[0]['data']
+          ''', schema=self.schema.name, table=self.dequote(self.table_name), name=self.name.split(' ')[-1])[0]['data']
 
     def add_schema_name(self):
         pass
