@@ -9,6 +9,7 @@ WORDS_TO_LOWER = ['CREATE', 'ALTER', 'TABLE', 'FUNCTION', 'INDEX', ' CAST ', ' C
                   ' AND ', ' OR ', ' ON ', ' ADD ', ' FOR ', ' IS ', 'NULL::', ' WITH ',
                   'COMMENT', 'COLUMN', 'IMPLICIT', 'DOMAIN', 'UNLOGGED']
 
+
 class PgObject(object):
     children = []
     body_sql = None  # if defined, body will replace to sql result
@@ -18,6 +19,16 @@ class PgObject(object):
         self.parser = parser
         self.name, self.type, self.schema, self.owner = \
             self.match('(.+); Type: (.+); Schema: (.+); Owner: *(.*)', data.split('\n')[0])
+
+        # For some types pg_dump adds parent table name
+        # before entity name, for trigger, for example,
+        # the string will look like this:
+        #
+        # Name: price bi_price; Type: TRIGGER; Schema: crm; Owner: postgres
+        #
+        # So we should take only last part of a name - after a last space
+        if self.type in ('DEFAULT', 'CONSTRAINT', 'FK CONSTRAINT', 'TRIGGER', 'RULE'):
+            self.name = self.name.split(' ')[-1]
 
         self.schema = self.parser.schemas.get(self.schema)
         self.acl = []
@@ -617,7 +628,7 @@ class Trigger(PgObjectOfTable):
               join pg_class r on r.oid = tgrelid
               join pg_namespace rn on rn.oid = relnamespace
              where rn.nspname = %(schema)s and relname = %(table)s and tgname =  %(name)s
-          ''', schema=self.schema.name, table=self.table_name.replace('"', ''), name=self.name.split(' ')[-1])[0]['data']
+          ''', schema=self.schema.name, table=self.table_name.replace('"', ''), name=self.name)[0]['data']
 
     def add_schema_name(self):
         if self.table.name in ("group", "user", "position"):
@@ -633,7 +644,7 @@ class Rule(PgObjectOfTable):
             select definition as data
               from pg_rules
              where schemaname = %(schema)s and tablename = %(table)s and rulename = %(name)s
-          ''', schema=self.schema.name, table=self.dequote(self.table_name), name=self.name.split(' ')[-1])[0]['data']
+          ''', schema=self.schema.name, table=self.dequote(self.table_name), name=self.name)[0]['data']
 
     def add_schema_name(self):
         pass
