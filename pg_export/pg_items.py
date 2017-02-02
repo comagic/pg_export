@@ -321,8 +321,7 @@ class Function(PgObjectOfSchema):
               join pg_type t on t.oid = d.refobjid
               join pg_class c on c.oid = t.typrelid
               join pg_namespace n on n.oid = relnamespace
-            where d.objid = %(oid)s and relkind='r' and
-                  d.classid in (select cd.oid from pg_class cd where cd.relname = 'pg_class')''', oid=self.oid)
+            where d.objid = %(oid)s and relkind='r' and d.deptype = 'n' ''', oid=self.oid)
         if dep_table:
             self.data += '\n--depend on table %(nspname)s.%(relname)s' % dep_table[0]
 
