@@ -28,7 +28,7 @@ class PgObject(object):
         #
         # So we should take only last part of a name - after a last space
         if self.type in ('DEFAULT', 'CONSTRAINT', 'FK CONSTRAINT', 'TRIGGER', 'RULE'):
-            self.name = self.name.split(' ')[-1]
+            self.name = ' '.join(self.name.split(' ')[1:])
 
         self.schema = self.parser.schemas.get(self.schema)
         self.acl = []
