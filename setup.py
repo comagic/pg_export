@@ -22,4 +22,7 @@ setup(name = "pg_export",
       maintainer_email = "d.beloborodov@gmail.com",
       url = "http://comagic.ru",
       scripts = ['bin/pg_export'],
-      packages = get_packages(['pg_export']))
+      packages = get_packages(['pg_export']),
+      install_requires = [
+          "psycopg2"
+      ])
