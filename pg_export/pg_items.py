@@ -127,7 +127,7 @@ class PgObjectOfSchema(PgObject):
         super(PgObjectOfSchema, self).dump(root_dir)
 
         for c_name, c in [(c_name, getattr(self, c_name)) for c_name in self.children]:
-            for e in c.values():
+            for e in sorted(c.values(), key=lambda x: x.data):
                 e.dump(root_dir)
 
 
@@ -192,6 +192,14 @@ class Acl(PgObject):
                  self.patch_data(' ON %s %s' % (self.ptype, self.name),
                                  ' ON %s %s.%s' % (self.ptype, self.schema.name, self.name))
 
+    def dump(self, root_dir):
+        self.lower_keywords()
+
+        tmp = [a for a in self.data.split("\n") if a != ""]
+        self.data = "\n".join(sorted([a for a in tmp if "revoke" in a]) + \
+                              sorted([a for a in tmp if "revoke" not in a])) + "\n\n"
+
+        open(os.path.join(root_dir, '%s.%s' % (self.file_name, self.file_ext)), 'a').write(self.data)
 
 class Comment(PgObject):
     def add_to_parent(self):
