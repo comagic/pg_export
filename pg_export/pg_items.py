@@ -204,7 +204,7 @@ class Acl(PgObject):
 class Comment(PgObject):
     def add_to_parent(self):
         tn = self.name.split(' ')
-        self.name = ' '.join(tn[1:])
+        self.name = ' '.join(tn[1:]).replace('"', '')
         self.ptype = tn[0]
         self.parent = None
         if self.ptype == 'SCHEMA':
@@ -253,6 +253,9 @@ class Comment(PgObject):
                 else:
                     self.patch_data(' ON %s %s' % (self.ptype, self.name),
                                     ' ON %s %s.%s' % (self.ptype, self.schema.name, self.name))
+                    if '.' in self.name:
+                        self.patch_data(' ON %s "%s".%s' % tuple([self.ptype] + self.name.split('.')),
+                                        ' ON %s %s.%s' % (self.ptype, self.schema.name, self.name))
 
 
 class Schema(PgObject):
