@@ -253,6 +253,8 @@ class Comment(PgObject):
                 else:
                     self.patch_data(' ON %s %s' % (self.ptype, self.name),
                                     ' ON %s %s.%s' % (self.ptype, self.schema.name, self.name))
+                    self.patch_data(' ON %s "%s"' % (self.ptype, self.name),
+                                    ' ON %s %s.%s' % (self.ptype, self.schema.name, self.name))
                     if '.' in self.name:
                         self.patch_data(' ON %s "%s".%s' % tuple([self.ptype] + self.name.split('.')),
                                         ' ON %s %s.%s' % (self.ptype, self.schema.name, self.name))
@@ -305,7 +307,7 @@ class Function(PgObjectOfSchema):
 
         self.is_trigger = (rettype == 'trigger')
 
-        if self.file_ext == 'c':
+        if self.file_ext in ('c', 'internal'):
             self.data += ';'
             return
 
