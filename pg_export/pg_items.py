@@ -164,7 +164,8 @@ class Acl(PgObject):
         elif self.ptype == 'FUNCTION':
             self.parent = self.schema.functions[self.name]
         elif self.ptype == 'TABLE':
-            self.parent = (self.schema.tables.get(self.name) or self.schema.views.get(self.name) or self.schema.foreigntables.get(self.name))
+            if self.schema != None:
+                self.parent = (self.schema.tables.get(self.name) or self.schema.views.get(self.name) or self.schema.foreigntables.get(self.name))
         elif self.ptype == 'SEQUENCE':
             self.parent = self.schema.sequences[self.name]
         elif self.ptype == 'FOREIGN':

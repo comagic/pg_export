@@ -35,9 +35,13 @@ class DataDumper:
         for t in tables:
             table_name = '.'.join([t['nspname'], t['relname']]).replace('public.', '')
             file_name = os.path.join(root_dir, t['nspname'], t['relname']+'.sql')
-            cond = 'where ' + t['cond'] if t['cond'] else ''
+            if t['cond'] and t['cond'].startswith('select'):
+                query = t['cond']
+            else:
+                cond = 'where ' + t['cond'] if t['cond'] else ''
+                query = 'select * from %s %s order by 1' % (table_name, cond)
 
-            os.popen('psql -c "\copy (select * from %s %s order by 1) to %s" %s %s' % (table_name, cond, file_name, args.connect_args, args.dbname))
+            os.popen('psql -c "\copy (%s) to %s" %s %s' % (query, file_name, args.connect_args, args.dbname))
 
             body = open(file_name).read()
             if body:
