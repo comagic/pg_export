@@ -55,6 +55,7 @@ class Parser:
         dump = re.sub('SET search_path = .*;\n', '', dump)
         dump = re.sub('SET default_tablespace = \'\';\n', '', dump)
         dump = re.sub('SET default_with_oids = false;\n', '', dump)
+        dump = dump.replace('--\n-- PostgreSQL database dump complete\n--', '')
         for item in re.split('--\n-- Name: ', dump)[1:]:
             header = item.split('\n')[0]
             m = re.match('.*Type: ([^;]+);.*', header)
