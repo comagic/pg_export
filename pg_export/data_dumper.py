@@ -15,7 +15,7 @@ class DataDumper:
             select distinct nspname
               from pg_class t
               join pg_namespace n on t.relnamespace = n.oid
-             where relkind = 'r' and obj_description(t.oid) like '%%synchronized directory%%' ''')
+             where relkind = 'r' and obj_description(t.oid, 'pg_class') like '%%synchronized directory%%' ''')
         if not schemas:
             return
 
@@ -27,11 +27,12 @@ class DataDumper:
 
         tables = self.sql_execute('''
             select nspname, relname, 
-                   (array(select (regexp_matches(obj_description(t.oid),
+                   (array(select (regexp_matches(d.description,
                                  'synchronized directory\((.*)\)'))[1]))[1] as cond
               from pg_class t
               join pg_namespace n on t.relnamespace = n.oid
-             where relkind = 'r' and obj_description(t.oid) like '%%synchronized directory%%' ''')
+             cross join obj_description(t.oid, 'pg_class') as d(description)
+             where relkind = 'r' and d.description like '%%synchronized directory%%' ''')
         for t in tables:
             table_name = '.'.join([t['nspname'], t['relname']]).replace('public.', '')
             file_name = os.path.join(root_dir, t['nspname'], t['relname']+'.sql')
