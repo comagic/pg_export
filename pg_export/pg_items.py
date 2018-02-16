@@ -29,6 +29,8 @@ class PgObject(object):
         # So we should take only last part of a name - after a last space
         if self.type in ('DEFAULT', 'CONSTRAINT', 'FK CONSTRAINT', 'TRIGGER', 'RULE'):
             self.name = ' '.join(self.name.split(' ')[1:])
+        elif self.type == 'ACL' and self.parser.dump_version > [9,6,2]:
+            self.name = self.match('\w+ (.+); Type: .*', data.split('\n')[0])[0]
 
         self.schema = self.parser.schemas.get(self.schema)
         self.acl = []
@@ -162,6 +164,8 @@ class Acl(PgObject):
         if self.ptype == 'SCHEMA':
             self.parent = self.parser.schemas[self.name]
         elif self.ptype == 'FUNCTION':
+            if self.parser.dump_version > [9,6,2]:
+                self.name = self.del_args_name(self.name)
             self.parent = self.schema.functions[self.name]
         elif self.ptype == 'TABLE':
             if self.schema != None:

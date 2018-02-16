@@ -37,6 +37,7 @@ item_types = {
 
 class Parser:
     def __init__(self, db_connect):
+        self.dump_version = None
         self.db_connect = db_connect
         self.schemas = {}
         Schema(self, 'public; Type: SCHEMA; Schema: -; Owner: postgres') #init default schema
@@ -56,7 +57,10 @@ class Parser:
         dump = re.sub('SET default_tablespace = \'\';\n', '', dump)
         dump = re.sub('SET default_with_oids = false;\n', '', dump)
         dump = dump.replace('--\n-- PostgreSQL database dump complete\n--', '')
-        for item in re.split('--\n-- Name: ', dump)[1:]:
+        dump = re.split('--\n-- Name: ', dump)
+        self.dump_version = map(int, re.match('.*pg_dump version (.+)', dump.pop(0).split('\n')[5]).groups()[0].split('.'))
+
+        for item in dump:
             header = item.split('\n')[0]
             m = re.match('.*Type: ([^;]+);.*', header)
             if not m:
