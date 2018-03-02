@@ -3,12 +3,13 @@ import os
 
 WORDS_TO_LOWER = ['CREATE', 'ALTER', 'TABLE', 'FUNCTION', 'INDEX', ' CAST ', ' CASCADE',
                   'GRANT', 'REVOKE', ' TO ', ' FROM ', ' ALL ', 'PUBLIC', 'DEFERRABLE', 'INITIALLY DEFERRED',
-                  'TRIGGER', 'AFTER', 'BEFORE', 'EACH ROW', 'EXECUTE PROCEDURE', 'LANGUAGE', 'AS',
+                  'TRIGGER', 'AFTER', 'BEFORE', 'EACH ROW', 'EXECUTE PROCEDURE', 'LANGUAGE', ' AS',
                   'DEFAULT', 'NOT NULL', 'USING', 'SELECT', 'INSERT ', 'UPDATE ', 'DELETE ',
                   'UNIQUE', 'CONSTRAINT', 'ONLY', 'REFERENCES', 'FOREIGN KEY', 'PRIMARY KEY',
                   ' AND ', ' OR ', ' ON ', ' ADD ', ' FOR ', ' IS ', 'NULL::', ' WITH ',
                   'COMMENT', 'COLUMN', 'IMPLICIT', 'DOMAIN', 'UNLOGGED']
 
+KEYWORDS_IN_NAME = ["group", "user", "position", "column"]
 
 class PgObject(object):
     children = []
@@ -69,6 +70,7 @@ class PgObject(object):
     def del_args_name(self, fname):# f(a integer, b text) -> f(integer, text)
         name, args = re.match('(.*)\((.*)\)', fname).groups()
         args = args.split(', OUT')[0]
+        args = args.split('OUT')[0] #OUT only
         args = ', '.join([' '.join(a.split(' ')[1:]) if ' ' in a and a not in ('timestamp with time zone', 'timestamp without time zone') else a for a in args.split(', ')])
         return "%s(%s)" % (name, args)
 
@@ -149,7 +151,7 @@ class PgObjectOfTable(PgObject):
         self.file_ext = self.table.file_ext
 
     def add_schema_name(self):
-        if self.table.name in ("group", "user", "position"):
+        if self.table.name in KEYWORDS_IN_NAME:
             self.patch_data('"%s"' % self.table.name, '%s' % self.table.name)
 
         if self.schema.name != 'public':
@@ -169,6 +171,8 @@ class Acl(PgObject):
             self.parent = self.schema.functions[self.name]
         elif self.ptype == 'TABLE':
             if self.schema != None:
+                if '"' in self.name:
+                    self.name = self.name.replace('"', '')
                 self.parent = (self.schema.tables.get(self.name) or self.schema.views.get(self.name) or self.schema.foreigntables.get(self.name))
         elif self.ptype == 'SEQUENCE':
             self.parent = self.schema.sequences[self.name]
@@ -518,7 +522,7 @@ class Table(PgObjectOfSchema):
         self.data = '\n'.join(body)
 
     def add_schema_name(self):
-        if self.name in ("group", "user", "position"):
+        if self.name in KEYWORDS_IN_NAME:
             self.patch_data('"%s"' % self.name, '%s' % self.name)
 
         if self.schema.name != 'public':
@@ -617,7 +621,7 @@ class Index(PgObjectOfTable):
               ''' % (self.schema.name, self.table_name, self.name))
 
     def add_schema_name(self):
-        if self.table.name in ("group", "user", "position"):
+        if self.table.name in KEYWORDS_IN_NAME:
             self.patch_data('"%s"' % self.table.name, '%s' % self.table.name)
 
 class SequenceOwnedBy(PgObjectOfTable):
@@ -651,7 +655,7 @@ class Trigger(PgObjectOfTable):
           ''', schema=self.schema.name, table=self.table_name.replace('"', ''), name=self.name)[0]['data']
 
     def add_schema_name(self):
-        if self.table.name in ("group", "user", "position"):
+        if self.table.name in KEYWORDS_IN_NAME:
             self.patch_data('"%s"' % self.table.name, '%s' % self.table.name)
 
 
