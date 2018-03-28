@@ -137,7 +137,7 @@ class PgObjectOfSchema(PgObject):
 
 class PgObjectOfTable(PgObject):
     def add_to_parent(self):
-        self.table_name = self.match(self.table_pattern, flags=re.M)[0]
+        self.table_name = self.match(self.table_pattern, flags=re.M)[0].split('.')[-1]
         self.table = self.schema.tables.get(self.table_name) or \
                      self.schema.tables.get(self.dequote(self.table_name)) or \
                      self.schema.views.get(self.table_name) or \
@@ -145,7 +145,7 @@ class PgObjectOfTable(PgObject):
                      self.schema.materializedviews.get(self.table_name) or \
                      self.schema.materializedviews.get(self.dequote(self.table_name))
         if not self.table:
-            raise Exception('Cant find table or view "%s"' % self.table_name)
+            raise Exception('Cant find table or view "%s" for %s(%s)' % (self.table_name, self.__class__.__name__, self.name))
         getattr(self.table, self.__class__.__name__.lower() + 's')[self.name] = self
         self.file_name = self.table.file_name
         self.file_ext = self.table.file_ext
@@ -177,7 +177,7 @@ class Acl(PgObject):
         elif self.ptype == 'SEQUENCE':
             self.parent = self.schema.sequences[self.name]
         elif self.ptype == 'FOREIGN':
-            self.parent = self.parser.schemas.get('public').servers[self.name]
+            self.parent = self.parser.schemas.get('public').servers[self.name.replace('SERVER ', '')]
 
         if self.parent:
             self.parent.acl.append(self)
@@ -365,7 +365,7 @@ class Function(PgObjectOfSchema):
             from pg_proc p
             join pg_namespace n on pronamespace = n.oid
            where nspname = %(schema)s and proname = %(name)s and pg_get_function_arguments(p.oid) like %(args)s
-          ''', schema=self.schema.name, name=self.dequote(name), args=self.del_public(args))[0]['oid']
+          ''', schema=self.schema.name, name=self.dequote(name).split('.')[-1], args=self.del_public(args))[0]['oid']
         super(PgObjectOfSchema, self).replace_body_by_sql()
         self.data = self.data[:-1] # -eol
         self.patch_data('$function$', '$$')
