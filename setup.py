@@ -17,7 +17,7 @@ def get_packages(dirs):
 setup(name = "pg_export",
       description="pg_dump -> repo",
       license="""BSD""",
-      version = "0.6.0",
+      version = "0.6.1",
       maintainer = "Dima Beloborodov",
       maintainer_email = "d.beloborodov@gmail.com",
       url = "http://comagic.ru",

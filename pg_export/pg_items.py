@@ -45,6 +45,7 @@ class PgObject(object):
         self.add_to_parent()
         self.replace_body_by_sql()
         self.add_schema_name()
+        self.del_public_from_name()
         self.special()
         self.one_oel()
 
@@ -102,6 +103,10 @@ class PgObject(object):
     def del_public(self, s):
         return s.replace('public.', '')
 
+    def del_public_from_name(self, name=None):
+        if self.parser.dump_version >= [10, 3] and self.schema and self.schema.name == 'public':
+            self.patch_data('public.' + (name or self.name), name or self.name)
+
     def dequote(self, s):
         return s.replace('"', '')
 
@@ -122,6 +127,11 @@ class PgObjectOfSchema(PgObject):
         before_name = 'CREATE ' + self.__class__.__name__.upper()
         name = self.name.split('(')[0]
         if self.schema.name != 'public':
+            if self.parser.dump_version >= [10, 3]:
+                if '"' in self.data:
+                    self.patch_data('%s %s."%s"' % (before_name, self.schema.name, self.name),
+                                    '%s %s.%s' % (before_name, self.schema.name, self.name))
+                return
             self.patch_data_re('%s %s' % (before_name, name),
                                '%s %s.%s' % (before_name, self.schema.name, name))
             self.patch_data_re('%s "%s"' % (before_name, name),
@@ -150,10 +160,14 @@ class PgObjectOfTable(PgObject):
         self.file_name = self.table.file_name
         self.file_ext = self.table.file_ext
 
+    def del_public_from_name(self, name=None):
+        super(PgObjectOfTable, self).del_public_from_name(self.table_name)
+
     def add_schema_name(self):
         if self.table.name in KEYWORDS_IN_NAME:
             self.patch_data('"%s"' % self.table.name, '%s' % self.table.name)
-
+        if self.parser.dump_version >= [10, 3]:
+            return
         if self.schema.name != 'public':
             self.patch_data_re(' %s %s' % (self.before_name, self.table.name),
                                ' %s %s.%s' % (self.before_name, self.schema.name, self.table.name))
@@ -188,9 +202,12 @@ class Acl(PgObject):
 
     def special(self):
         self.patch_data_re('REVOKE ALL ON .* FROM postgres;\nGRANT ALL ON .* TO postgres;\n', '')
+        self.patch_data('"', '')
 
     def add_schema_name(self):
         if self.schema and self.schema.name != 'public':
+            if self.parser.dump_version >= [10, 3]:
+                return
             if self.ptype == 'FUNCTION':
                 name = self.match('.* ON FUNCTION (.*) (FROM|TO) .*')[0]
                 self.patch_data(name, self.parent.semantic)
@@ -200,6 +217,10 @@ class Acl(PgObject):
                  self.patch_data('" TO', ' TO')
                  self.patch_data(' ON %s %s' % (self.ptype, self.name),
                                  ' ON %s %s.%s' % (self.ptype, self.schema.name, self.name))
+
+    def del_public_from_name(self):
+        if self.parser.dump_version >= [10, 3]:
+            self.patch_data('public.', '')
 
     def dump(self, root_dir):
         self.lower_keywords()
@@ -255,6 +276,10 @@ class Comment(PgObject):
                 name = self.match('.* ON FUNCTION (.*) IS .*')[0]
                 self.patch_data(name, self.parent.semantic)
             else:
+                if self.parser.dump_version >= [10, 3]:
+                    self.patch_data(' ON %s %s."%s"' % (self.ptype, self.schema.name, self.parent.name),
+                                    ' ON %s %s.%s' % (self.ptype, self.schema.name, self.parent.name))
+                    return
                 if ' ON ' in self.name:
                     name = self.name.split(' ON ')[1]
                     self.patch_data(' ON %s' % (name),
@@ -267,6 +292,8 @@ class Comment(PgObject):
                     if '.' in self.name:
                         self.patch_data(' ON %s "%s".%s' % tuple([self.ptype] + self.name.split('.')),
                                         ' ON %s %s.%s' % (self.ptype, self.schema.name, self.name))
+        elif self.parser.dump_version >= [10, 3]:
+            self.patch_data('public.', '')
 
 
 class Schema(PgObject):
@@ -286,7 +313,7 @@ class Schema(PgObject):
             if c:
                 dd = os.path.join(d, c_name)
                 os.mkdir(dd)
-                for e in c.values():
+                for e in sorted(c.values(), key=lambda x:x.data):
                     e.dump(dd)
 
     def post_processing(self):
@@ -477,7 +504,8 @@ class Table(PgObjectOfSchema):
                     cdefault = self.match(".* DEFAULT ([^)]*\)).*", s)[0]
                     d = self.get_column_def(self.schema.name, self.name, self.dequote(cname))
                     if cdefault != d['column_default']:
-                        s = s.replace(cdefault, d['column_default'].replace('::regclass', ''))
+                        s = s.replace(cdefault, d['column_default'])
+                    s = s.replace('::regclass', '')
                 elif 'DEFAULT' in s:
                     t = s.split(' NOT NULL')[0]
                     t = t[:-1] if t[-1] == ',' else t
@@ -602,6 +630,12 @@ class Constraint(PgObjectOfTable):
     table_pattern = 'ALTER TABLE ONLY (.*)\n.*'
     before_name = 'ONLY'
 
+    def add_schema_name(self):
+        if self.parser.dump_version >= [10, 3] and self.schema.name != 'public' and '"' in self.data:
+            self.patch_data(' ONLY %s."%s"' % (self.schema.name, self.table.name),
+                            ' ONLY %s.%s' % (self.schema.name, self.table.name))
+
+
 class Index(PgObjectOfTable):
     table_pattern = '.*ON (.*) USING.*'
     before_name = 'ON'
@@ -642,7 +676,7 @@ class SequenceOwnedBy(PgObjectOfTable):
                                'ALTER SEQUENCE %s.%s' % (self.schema.name, self.name))
 
 class Trigger(PgObjectOfTable):
-    table_pattern = '.*ON (\w*|"\w*") ((NOT )?DEFERRABLE|FOR|FROM).*'
+    table_pattern = '.*ON (("?\w+"?.)?"?\w+"?) ((NOT )?DEFERRABLE|FOR|FROM).*'
     before_name = 'ON'
 
     def replace_body_by_sql(self):
