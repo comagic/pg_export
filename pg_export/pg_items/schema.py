@@ -1,7 +1,7 @@
+from pg_export.pg_items.item import Item
 import pg_export.filters as filters
 
-class Schema:
-    def __init__(self, data):
-            self.__dict__.update(data)
+class Schema (Item):
+    template = 'out/schema.sql'
+    directory = '.'
 
-            self.name = self.schema_name

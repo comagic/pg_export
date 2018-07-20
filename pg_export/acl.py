@@ -15,6 +15,8 @@ acl_map = {
     'c': 'connect'
 }
 
+acl_order = 'rawdDxtXUCTc'
+
 grant_all_pattern = {
     'column':         'arwx',
     'database':       'CTc',
@@ -41,7 +43,7 @@ def resolve_perm(obj_type, perm):
             perm = 'all'
             gr_opt = ' with grant option'
         else:
-            perm = ', '.join(acl_map[c] for c in perm)
+            perm = ', '.join(acl_map[c] for c in sorted(perm, key=lambda x:acl_order.find(x)))
         return perm, gr_opt
 
 def acl_to_grants(acl, obj_type, obj_name, subobj_name=''):
