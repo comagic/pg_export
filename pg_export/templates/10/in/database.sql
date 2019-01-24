@@ -6,6 +6,9 @@ select json_build_object(
            ({% include '10/in/type.sql' %}),
 
            'tables',
-           ({% include '10/in/table.sql' %})
+           ({% include '10/in/table.sql' %}),
+
+           'functions',
+           ({% include '10/in/function.sql' %})
 
        ) as src

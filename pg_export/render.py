@@ -3,12 +3,14 @@
 import os
 from jinja2 import Environment, FileSystemLoader
 from pg_export.acl import acl_to_grants
-from filters import untype_default
+from filters import untype_default, ljust, rjust
 
 env = Environment(loader=FileSystemLoader('pg_export/templates'))
 
 env.filters['acl_to_grants'] = acl_to_grants
 env.filters['untype_default'] = untype_default
+env.filters['ljust'] = ljust
+env.filters['rjust'] = rjust
 
 def render(template_name, context):
     try:
@@ -21,4 +23,4 @@ def render(template_name, context):
 def render_to_file(template_name, context, file_name):
     if isinstance(file_name, tuple):
         file_name = os.path.join(*file_name)
-    open(file_name, 'w').write(render(template_name, context).encode('utf8'))
+    open(file_name, 'a').write(render(template_name, context).encode('utf8'))

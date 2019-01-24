@@ -5,3 +5,9 @@ def get_full_name(schema, name):
 
 def untype_default(default, column_type):
     return default.replace('::'+column_type, '').replace('::'+column_type.split('.')[-1], '')
+
+def ljust(s, w, c):
+  return s.ljust(w, c)
+
+def rjust(s, w, c):
+  return s.rjust(w, c)

@@ -7,6 +7,7 @@ from pg_export.render import render
 from pg_export.pg_items.schema import Schema
 from pg_export.pg_items.type import Type
 from pg_export.pg_items.table import Table
+from pg_export.pg_items.function import Function
 
 directory_sql = '''
   select n.nspname as schema,
@@ -38,8 +39,9 @@ class Extractor:
         self.get_version()
         self.src = self.sql_execute(render(os.path.join(self.version, 'in', 'database.sql'), {}))[0]['src']
         self.schemas = [Schema(i, self.version) for i in self.src['schemas']]
-        self.tables = [Table(i, self.version) for i in self.src['tables']]
         self.types = [Type(i, self.version) for i in self.src['types']]
+        self.tables = [Table(i, self.version) for i in self.src['tables']]
+        self.functions = [Function(i, self.version) for i in self.src['functions']]
 
     def dump_structure(self, root):
         self.extract_structure()
@@ -49,14 +51,19 @@ class Extractor:
 
         for s in self.schemas:
             os.mkdir(os.path.join(root, s.name))
-            os.mkdir(os.path.join(root, s.name, 'tables'))
             os.mkdir(os.path.join(root, s.name, 'types'))
+            os.mkdir(os.path.join(root, s.name, 'tables'))
+            os.mkdir(os.path.join(root, s.name, 'functions'))
+            os.mkdir(os.path.join(root, s.name, 'triggers'))
 
         for t in self.types:
             t.dump(root)
 
         for t in self.tables:
             t.dump(root)
+
+        for f in self.functions:
+            f.dump(root)
 
     def dump_directory(self, root):
         tables = self.sql_execute(directory_sql)

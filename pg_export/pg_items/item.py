@@ -5,6 +5,7 @@ import pg_export.filters as filters
 class Item (object):
     template = None
     directory = None
+    ext = '.sql'
 
     def __init__(self, src, version):
             self.__dict__.update(src)
@@ -13,4 +14,4 @@ class Item (object):
     def dump(self, root):
        render_to_file(os.path.join(self.version, self.template),
                       self.__dict__,
-                      (root, self.schema, self.directory, self.name + '.sql'))
+                      (root, self.schema, self.directory, self.name + self.ext))
