@@ -676,7 +676,7 @@ class SequenceOwnedBy(PgObjectOfTable):
                                'ALTER SEQUENCE %s.%s' % (self.schema.name, self.name))
 
 class Trigger(PgObjectOfTable):
-    table_pattern = '.*ON (("?\w+"?.)?"?\w+"?) ((NOT )?DEFERRABLE|FOR|FROM).*'
+    table_pattern = '.*ON (("?\w+"?.)?"?\w+"?) ((NOT )?DEFERRABLE|REFERENCING|FOR|FROM).*'
     before_name = 'ON'
 
     def replace_body_by_sql(self):
