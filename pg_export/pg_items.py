@@ -145,9 +145,10 @@ class PgObjectOfSchema(PgObject):
 
     def dump(self, root_dir):
         super(PgObjectOfSchema, self).dump(root_dir)
-
-        for c_name, c in [(c_name, getattr(self, c_name)) for c_name in self.children]:
-            for e in sorted(c.values(), key=lambda x: x.data):
+        # pk must be before fk for self reference tables
+        children = sorted(self.children)
+        for c_name, c in [(c_name, getattr(self, c_name)) for c_name in children]:
+            for e in sorted(c.values(), key=lambda x: x.name):
                 e.dump(root_dir)
 
 
