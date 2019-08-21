@@ -60,6 +60,8 @@ class Parser:
         dump = re.split('--\n-- Name: ', dump)
         self.dump_version = map(int, re.match('.*pg_dump version (.+)', dump.pop(0).split('\n')[5]).groups()[0].split('.'))
 
+        print "Dump version: %s" % (self.dump_version)
+
         for item in dump:
             header = item.split('\n')[0]
             m = re.match('.*Type: ([^;]+);.*', header)

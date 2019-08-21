@@ -68,10 +68,16 @@ class PgObject(object):
         except AttributeError:
             raise Exception('(class: %s) pattern "%s" doesnt like on "%s"' % (self.__class__.__name__, pattern, data or self.data))
 
+    def del_arg_name(self, arg):
+        if arg.lower().startswith('variadic'):
+            arg = ' '.join(arg.split(' ')[1:])
+        return ' '.join(arg.split(' ')[1:])
+
     def del_args_name(self, fname):# f(a integer, b text) -> f(integer, text)
         name, args = re.match('(.*)\((.*)\)', fname).groups()
         args = args.split(', OUT')[0]
         args = args.split('OUT')[0] #OUT only
+        # args = ', '.join([self.del_arg_name(a) for a in args.split(', ')])
         args = ', '.join([' '.join(a.split(' ')[1:]) if ' ' in a and a not in ('timestamp with time zone', 'timestamp without time zone') else a for a in args.split(', ')])
         return "%s(%s)" % (name, args)
 
@@ -258,6 +264,8 @@ class Comment(PgObject):
             self.parent = self.schema.tables[self.match('.* ON (.*)', self.name)[0]]
         elif self.ptype == 'MATERIALIZED VIEW':
             self.parent = self.schema.materializedviews[self.name]
+        elif self.ptype == 'TRIGGER':
+            self.parent = self.schema.tables[tn[-1]].triggers[tn[1]]
         if self.parent:
             self.parent.comments.append(self)
             self.file_name = self.parent.file_name
