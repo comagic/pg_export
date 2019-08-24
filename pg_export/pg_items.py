@@ -33,6 +33,8 @@ class PgObject(object):
         elif self.type == 'ACL' and self.parser.dump_version > [9,6,2]:
             self.name = self.match('\w+ (.+); Type: .*', data.split('\n')[0])[0]
 
+        self.name = self.name.replace('"', '')
+
         self.schema = self.parser.schemas.get(self.schema)
         self.acl = []
         self.comments = []
