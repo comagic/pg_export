@@ -231,6 +231,49 @@ class Acl(PgObject):
 
         open(os.path.join(root_dir, '%s.%s' % (self.file_name, self.file_ext)), 'a').write(self.data)
 
+class DAcl(PgObject):
+    def add_to_parent(self):
+        self.ptype = self.match('.* IN SCHEMA (\w+) .*')[0]
+        self.parent = self.parser.schemas[self.ptype]
+
+        if self.parent:
+            self.parent.acl.append(self)
+            self.file_name = self.parent.file_name
+            self.file_ext = self.parent.file_ext
+        else:
+            print "WARNING: can't find %s(%s) for acl" % (self.ptype, self.name)
+
+    def special(self):
+        self.patch_data_re('REVOKE ALL ON .* FROM postgres;\nGRANT ALL ON .* TO postgres;\n', '')
+        self.patch_data('"', '')
+
+    def add_schema_name(self):
+        if self.schema and self.schema.name != 'public':
+            if self.parser.dump_version >= [10, 3]:
+                return
+            if self.ptype == 'FUNCTION':
+                name = self.match('.* ON FUNCTION (.*) (FROM|TO) .*')[0]
+                self.patch_data(name, self.parent.semantic)
+            else:
+                 self.patch_data(self.ptype+' "', self.ptype+' ') # for keyword, ON "user" FROM|TO
+                 self.patch_data('" FROM', ' FROM')
+                 self.patch_data('" TO', ' TO')
+                 self.patch_data(' ON %s %s' % (self.ptype, self.name),
+                                 ' ON %s %s.%s' % (self.ptype, self.schema.name, self.name))
+
+    def del_public_from_name(self):
+        if self.parser.dump_version >= [10, 3]:
+            self.patch_data('public.', '')
+
+    def dump(self, root_dir):
+        self.lower_keywords()
+
+        tmp = [a for a in self.data.split("\n") if a != ""]
+        self.data = "\n".join(sorted([a for a in tmp if "revoke" in a]) + \
+                              sorted([a for a in tmp if "revoke" not in a])) + "\n\n"
+
+        open(os.path.join(root_dir, '%s.%s' % (self.file_name, self.file_ext)), 'a').write(self.data)
+
 class Comment(PgObject):
     def add_to_parent(self):
         tn = self.name.split(' ')
