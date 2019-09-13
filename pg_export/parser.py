@@ -9,6 +9,7 @@ from pg_items import *
 
 item_types = {
     'ACL': Acl,
+    'DEFAULT ACL': DAcl,
     'AGGREGATE': Aggregate,
     'CAST': Cast,
     'COMMENT': Comment,
