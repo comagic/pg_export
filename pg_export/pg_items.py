@@ -7,7 +7,7 @@ WORDS_TO_LOWER = ['CREATE', 'ALTER', 'TABLE', 'FUNCTION', 'INDEX', ' CAST ', ' C
                   'DEFAULT', 'NOT NULL', 'USING', 'SELECT', 'INSERT ', 'UPDATE ', 'DELETE ',
                   'UNIQUE', 'CONSTRAINT', 'ONLY', 'REFERENCES', 'FOREIGN KEY', 'PRIMARY KEY',
                   ' AND ', ' OR ', ' ON ', ' ADD ', ' FOR ', ' IS ', 'NULL::', ' WITH ',
-                  'COMMENT', 'COLUMN', 'IMPLICIT', 'DOMAIN', 'UNLOGGED']
+                  'COMMENT', 'COLUMN', 'IMPLICIT', 'DOMAIN', 'UNLOGGED', 'PROCEDURE']
 
 KEYWORDS_IN_NAME = ["group", "user", "position", "column"]
 
@@ -183,6 +183,10 @@ class Acl(PgObject):
             if self.parser.dump_version > [9,6,2]:
                 self.name = self.del_args_name(self.name)
             self.parent = self.schema.functions[self.name]
+        elif self.ptype == 'PROCEDURE':
+            if self.parser.dump_version > [9,6,2]:
+                self.name = self.del_args_name(self.name)
+            self.parent = self.schema.procedures[self.name]
         elif self.ptype == 'TABLE':
             if self.schema != None:
                 if '"' in self.name:
@@ -210,6 +214,9 @@ class Acl(PgObject):
                 return
             if self.ptype == 'FUNCTION':
                 name = self.match('.* ON FUNCTION (.*) (FROM|TO) .*')[0]
+                self.patch_data(name, self.parent.semantic)
+            elif self.ptype == 'PROCEDURE':
+                name = self.match('.* ON PROCEDURE (.*) (FROM|TO) .*')[0]
                 self.patch_data(name, self.parent.semantic)
             else:
                  self.patch_data(self.ptype+' "', self.ptype+' ') # for keyword, ON "user" FROM|TO
@@ -285,6 +292,9 @@ class Comment(PgObject):
         elif self.ptype == 'FUNCTION':
             self.name = self.del_args_name(self.name)
             self.parent = self.schema.functions[self.name]
+        elif self.ptype == 'PROCEDURE':
+            self.name = self.del_args_name(self.name)
+            self.parent = self.schema.procedures[self.name]
         elif self.ptype == 'AGGREGATE':
             self.parent = self.schema.aggregates[self.name]
         elif self.ptype == 'TABLE':
@@ -318,6 +328,9 @@ class Comment(PgObject):
             if self.ptype == 'FUNCTION':
                 name = self.match('.* ON FUNCTION (.*) IS .*')[0]
                 self.patch_data(name, self.parent.semantic)
+            elif self.ptype == 'PROCEDURE':
+                name = self.match('.* ON PROCEDURE (.*) IS .*')[0]
+                self.patch_data(name, self.parent.semantic) 
             else:
                 if self.parser.dump_version >= [10, 3]:
                     self.patch_data(' ON %s %s."%s"' % (self.ptype, self.schema.name, self.parent.name),
@@ -342,7 +355,8 @@ class Comment(PgObject):
 class Schema(PgObject):
     children = ['aggregates', 'tables', 'functions', 'types', 'domains', 'operators',
                 'foreigntables', 'views', 'sequences', 'casts', 'languages',
-                'extensions', 'triggers', 'servers', 'usermappings', 'materializedviews']
+                'extensions', 'triggers', 'servers', 'usermappings', 'materializedviews',
+                'procedures']
 
     def add_to_parent(self):
         self.parser.schemas[self.name] = self
@@ -410,10 +424,15 @@ class Function(PgObjectOfSchema):
         dep_table = self.parser.sql_execute('''
             select n.nspname, c.relname
               from pg_depend d
-              join pg_type t on t.oid = d.refobjid
-              join pg_class c on c.oid = t.typrelid
-              join pg_namespace n on n.oid = relnamespace
-            where d.objid = %(oid)s and relkind='r' and d.deptype = 'n' ''', oid=self.oid)
+             inner join pg_type t
+                     on t.oid = d.refobjid
+             inner join pg_class c
+                     on c.oid = t.typrelid
+             inner join pg_namespace n
+                     on n.oid = relnamespace
+            where d.objid = %(oid)s and
+                  relkind='r' and
+                  d.deptype = 'n' ''', oid=self.oid)
         if dep_table:
             self.data += '\n--depend on table %(nspname)s.%(relname)s' % dep_table[0]
 
@@ -433,8 +452,12 @@ class Function(PgObjectOfSchema):
         self.oid = self.parser.sql_execute('''
           select p.oid::int
             from pg_proc p
-            join pg_namespace n on pronamespace = n.oid
-           where nspname = %(schema)s and proname = %(name)s and pg_get_function_arguments(p.oid) like %(args)s
+            inner join pg_namespace n
+                    on pronamespace = n.oid
+           where nspname = %(schema)s and
+                 proname = %(name)s and
+                 pg_get_function_arguments(p.oid) like %(args)s and
+                 prokind = 'f'
           ''', schema=self.schema.name, name=self.dequote(name).split('.')[-1], args=self.del_public(args))[0]['oid']
         super(PgObjectOfSchema, self).replace_body_by_sql()
         self.data = self.data[:-1] # -eol
@@ -443,6 +466,83 @@ class Function(PgObjectOfSchema):
     def get_identity_arguments(self):
         return self.parser.sql_execute('select pg_get_function_identity_arguments(%(oid)s) as args', oid=self.oid)[0]['args']
 
+class Procedure(PgObjectOfSchema):
+    body_sql = 'select pg_get_functiondef(%(oid)s) as body'
+ 
+    def special(self):
+        self.file_ext = self.match('(.*\n)* LANGUAGE (\w+).*', flags=re.M)[1]
+        self.file_name = self.name.split('(')[0]
+ 
+        body = self.data.split('\n')
+        name, args = self.match('CREATE OR REPLACE PROCEDURE ([^(]*)\((.*)\)', body.pop(0))
+        
+        self.semantic = '%s(%s)' % (name, self.get_identity_arguments())
+ 
+        if self.file_ext in ('c', 'internal'):
+            self.data += ';'
+            return
+ 
+        name = self.del_public(name)
+        
+        signature = 'create or replace\nprocedure %s(%s) as $$' % (name, self.pretty_args(args))
+ 
+        lang = body.pop(0)
+        if 'AS $$' not in body[0]:
+            lang += body.pop(0) #strict sequrity definer
+ 
+        body[0] = body[0].replace('AS $$', '')
+        if body[0] == '':
+            body.pop(0)
+        if body[-1] != '$$': #end;$$
+            body[-1] = body[-1].replace('$$', '\n$$')
+        body[-1] += ' %s;' % lang.lower().strip()
+        self.data = '\n'.join([signature] + body)
+ 
+        dep_table = self.parser.sql_execute('''
+            select n.nspname, c.relname
+              from pg_depend d
+             inner join pg_type t
+                     on t.oid = d.refobjid
+             inner join pg_class c
+                     on c.oid = t.typrelid
+             inner join pg_namespace n
+                     on n.oid = relnamespace
+            where d.objid = %(oid)s and
+                  relkind='r' and
+                  d.deptype = 'n' ''', oid=self.oid)
+        if dep_table:
+            self.data += '\n--depend on table %(nspname)s.%(relname)s' % dep_table[0]
+ 
+    def add_schema_name(self):
+        pass
+ 
+    def pretty_args(self, args_str):
+        args = args_str.split(', ')
+        if len(args) == 1 or min([len(a.split()) for a in args]) <= 1:
+            return args_str
+        max_len_name = max([len(a.split()[0]) for a in args])
+        return '\n%s\n' % ',\n'.join(['  %s %s' % (a.split(' ')[0].ljust(max_len_name),  ' '.join(a.split(' ')[1:])) for a in args])
+ 
+    def replace_body_by_sql(self):
+        name, args = self.match('CREATE PROCEDURE ([^(]*)\((.*)\)')
+        args = ', '.join([a.replace(' ', '%').replace('::', '%') for a in args.split(', ')])
+        self.oid = self.parser.sql_execute('''
+          select p.oid::int
+            from pg_proc p
+           inner join pg_namespace n
+                   on pronamespace = n.oid
+           where nspname = %(schema)s and
+                 proname = %(name)s and
+                 pg_get_function_arguments(p.oid) like %(args)s and
+                 prokind = 'p'
+          ''', schema=self.schema.name, name=self.dequote(name).split('.')[-1], args=self.del_public(args))[0]['oid']
+        super(PgObjectOfSchema, self).replace_body_by_sql()
+        self.data = self.data[:-1] # -eol
+        self.patch_data('$procedure$', '$$')
+ 
+    def get_identity_arguments(self):
+        return self.parser.sql_execute('select pg_get_function_identity_arguments(%(oid)s) as args', oid=self.oid)[0]['args']
+ 
 class Operator(PgObjectOfSchema):
     def special(self):
         self.file_name = 'operators'
