@@ -9,7 +9,6 @@ from pg_items import *
 
 item_types = {
     'ACL': Acl,
-    'DEFAULT ACL': DAcl,
     'AGGREGATE': Aggregate,
     'CAST': Cast,
     'COMMENT': Comment,
@@ -33,7 +32,8 @@ item_types = {
     'TYPE': Type,
     'USER MAPPING': UserMapping,
     'VIEW': View,
-    'MATERIALIZED VIEW': MaterializedView
+    'MATERIALIZED VIEW': MaterializedView,
+    'PROCEDURE': Procedure
 }
 
 class Parser:
@@ -59,7 +59,7 @@ class Parser:
         dump = re.sub('SET default_with_oids = false;\n', '', dump)
         dump = dump.replace('--\n-- PostgreSQL database dump complete\n--', '')
         dump = re.split('--\n-- Name: ', dump)
-        self.dump_version = map(int, re.match('.*pg_dump version (.+)', dump.pop(0).split('\n')[5]).groups()[0].split('.'))
+        self.dump_version = map(int, re.match('.*pg_dump version ([\d\.]+)', dump.pop(0).split('\n')[5]).groups()[0].split('.'))
 
         for item in dump:
             header = item.split('\n')[0]
