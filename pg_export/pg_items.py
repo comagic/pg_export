@@ -299,6 +299,8 @@ class Comment(PgObject):
             self.parent = self.schema.aggregates[self.name]
         elif self.ptype == 'TABLE':
             self.parent = self.schema.tables[self.name]
+        elif self.ptype == 'TRIGGER':
+            self.parent = self.schema.functions[self.name.split(' ON ')[0] + '()']
         elif self.ptype == 'VIEW':
             self.parent = self.schema.views[self.name]
         elif self.ptype == 'COLUMN':
