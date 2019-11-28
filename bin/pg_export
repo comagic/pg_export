@@ -41,7 +41,7 @@ if os.listdir(args.out_dir):
     if args.clean:
         os.system('rm -rf %s/*' % args.out_dir)
     else:
-        arg_parser.error('distination not empty (you can use option --clean)')
+        arg_parser.error('destination is not empty (you can use option --clean)')
 
 db_connect = psycopg2.connect(dbname=args.dbname, host=args.host, port=args.port, user=args.username, password=args.password)
 src_dump = os.popen('pg_dump -s -O %s %s' % (args.connect_args, args.dbname))
