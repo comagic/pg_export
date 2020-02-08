@@ -51,10 +51,16 @@ class Extractor:
 
         for s in self.schemas:
             os.mkdir(os.path.join(root, s.name))
-            os.mkdir(os.path.join(root, s.name, 'types'))
-            os.mkdir(os.path.join(root, s.name, 'tables'))
-            os.mkdir(os.path.join(root, s.name, 'functions'))
-            os.mkdir(os.path.join(root, s.name, 'triggers'))
+            if any(True for t in self.types if t.schema == s.name):
+                os.mkdir(os.path.join(root, s.name, 'types'))
+            if any(True for t in self.tables if t.schema == s.name):
+                os.mkdir(os.path.join(root, s.name, 'tables'))
+            if any(True for f in self.functions if f.schema == s.name and f.directory == 'functions'):
+                os.mkdir(os.path.join(root, s.name, 'functions'))
+            if any(True for f in self.functions if f.schema == s.name and f.directory == 'triggers'):
+                os.mkdir(os.path.join(root, s.name, 'triggers'))
+            if any(True for f in self.functions if f.schema == s.name and f.directory == 'procedures'):
+                os.mkdir(os.path.join(root, s.name, 'procedures'))
 
         for t in self.types:
             t.dump(root)

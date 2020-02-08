@@ -2,6 +2,7 @@
 # -*- coding:utf-8 -*-
 
 import os
+import shutil
 import argparse
 import psycopg2
 from pg_export.extractor import Extractor
@@ -27,7 +28,8 @@ if not os.access(args.out_dir, os.F_OK):
 
 if os.listdir(args.out_dir):
     if args.clean:
-        os.system('rm -rf %s/*' % args.out_dir)
+        for f in os.listdir(args.out_dir):
+            shutil.rmtree(os.path.join(args.out_dir, f))
     else:
         arg_parser.error('distination directory not empty (you can use option --clean)')
 

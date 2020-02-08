@@ -23,6 +23,7 @@ grant_all_pattern = {
     'fdw':            'U',
     'foreign_server': 'U',
     'function':       'X',
+    'procedure':      'X',
     'language':       'U',
     'largeobject':    'rw',
     'namespace':      'UC',
@@ -31,6 +32,8 @@ grant_all_pattern = {
     'tablespace':     'C',
     'type':           'U'
 }
+
+function_public_acl = '=X/postgres'
 
 grant_all_pattern_with_grant_option = {k: '*'.join(v)+'*' for k, v in grant_all_pattern.items()}
 
@@ -51,6 +54,11 @@ def acl_to_grants(acl, obj_type, obj_name, subobj_name=''):
         return ''
 
     res = []
+    if obj_type in ['function', 'procedure']:
+        if function_public_acl in acl:
+            acl.remove(function_public_acl)
+        else:
+            res.append('revoke all on %(obj_type)s %(obj_name)s from public;' % locals())
     for a in sorted(acl):
         role, perm = a.split('/')[0].split('=') #format: role=perm/grantor
         if role == 'postgres':
