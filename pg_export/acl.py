@@ -29,6 +29,7 @@ grant_all_pattern = {
     'namespace':      'UC',
     'table':          'arwdDxt',
     'sequence':       'Urw',
+    'schema':         'UC',
     'tablespace':     'C',
     'type':           'U'
 }

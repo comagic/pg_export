@@ -51,6 +51,7 @@ class Extractor:
 
         for s in self.schemas:
             os.mkdir(os.path.join(root, s.name))
+            s.dump(root)
             if any(True for t in self.types if t.schema == s.name):
                 os.mkdir(os.path.join(root, s.name, 'types'))
             if any(True for t in self.tables if t.schema == s.name):
