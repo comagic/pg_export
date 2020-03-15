@@ -1,6 +1,23 @@
 create {%- if unlogged %} unlogged {%- endif %} table {{ full_name }} (
     {%- include '10/out/attribute.sql' %}
-);
+)
+{%- if inherits %}
+inherits ({{ inherits|join_attr('table', ', ') }})
+{%- endif %}
+{%- if partition_by %}
+partition by {%- if partition_by.strategy == 'r' %} range
+             {%- elif partition_by.strategy == 'l' %} list
+             {%- elif partition_by.strategy == 'h' %} hash
+             {%- endif %} ({{ partition_by.columns|join(', ') }})
+{%- endif %};
+
+{%- if attach %}
+alter table only {{ attach.table }} attach partition {{ full_name }}
+    {%- if attach.is_default %} default
+    {%- elif attach.in %} for values in ({{ attach.in }})
+    {%- elif attach.from %} for values from ({{ attach.from }}) to ({{ attach.to }})
+    {%- endif %};
+{%- endif %}
 
 {% if acl -%}
 {{ acl|acl_to_grants('table', full_name) }}

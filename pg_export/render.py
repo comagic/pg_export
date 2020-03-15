@@ -3,7 +3,7 @@
 import os
 from jinja2 import Environment, FileSystemLoader
 from pg_export.acl import acl_to_grants
-from filters import untype_default, ljust, rjust
+from filters import untype_default, ljust, rjust, join_attr
 
 env = Environment(loader=FileSystemLoader('pg_export/templates'))
 
@@ -11,6 +11,7 @@ env.filters['acl_to_grants'] = acl_to_grants
 env.filters['untype_default'] = untype_default
 env.filters['ljust'] = ljust
 env.filters['rjust'] = rjust
+env.filters['join_attr'] = join_attr
 
 def render(template_name, context):
     try:

@@ -18,6 +18,13 @@ class Table (Item):
             self.exclusions = self.get_constraints('x')
             self.triggers = self.triggers or []
 
+            for i in self.inherits:
+                i['table'] = filters.get_full_name(i['table_schema'], i['table_name'])
+
+            if self.attach:
+                self.attach.update(self.inherits[0])
+                self.inherits = []
+
             for fk in self.foreign_keys:
                 fk['ftable'] = filters.get_full_name(fk['ftable_schema'], fk['ftable_name'])
 

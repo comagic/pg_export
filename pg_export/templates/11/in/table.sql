@@ -100,9 +100,37 @@ select json_agg(x)
                           join (pg_proc p join pg_namespace pn on pn.oid = p.pronamespace) on p.oid = tgfoid
                           left join (pg_class ft join pg_namespace fn on fn.oid = ft.relnamespace) on ft.oid = tg.tgconstrrelid
                          where tg.tgrelid = c.oid and not tg.tgisinternal
-                         order by tg.tgname) as x) as triggers
+                         order by tg.tgname) as x) as triggers,
+               (select coalesce(
+                         json_agg(
+                           json_build_object(
+                             'table_schema', ni.nspname,
+                             'table_name', ci.relname) order by i.inhseqno),
+                         '[]')
+                  from pg_inherits i
+                  join (pg_class ci join pg_namespace ni on ni.oid = ci.relnamespace) on ci.oid = i.inhparent
+                 where i.inhrelid = c.oid) as inherits,
+               case
+                 when p.partstrat is not null
+                   then json_build_object(
+                          'strategy', p.partstrat,
+                          'columns', (select array_agg(a.attname) --FIXME: need add expration
+                                        from unnest(p.partattrs::int[]) i
+                                        left join pg_attribute a on a.attrelid = c.oid and a.attnum = i))
+               end as partition_by,
+               case
+                 when b.expr is not null
+                   then json_build_object( --FIXME: need add WITH ( MODULUS ..., REMAINDER ...)
+                          'in', (regexp_match(b.expr, '^FOR VALUES IN \((.*)\)$'))[1],
+                          'from', (regexp_match(b.expr, '^FOR VALUES FROM \((.*)\) TO.*$'))[1],
+                          'to', (regexp_match(b.expr, '^FOR VALUES FROM .* TO \((.*)\)'))[1],
+                          'is_default', b.expr = 'DEFAULT')
+               end as attach
+
           from pg_class c
           join pg_namespace tn on tn.oid = c.relnamespace
           left join pg_description d on d.objoid = c.oid and d.objsubid = 0
-         where c.relkind = 'r' and
+          left join pg_partitioned_table p on p.partrelid = c.oid
+         cross join pg_get_expr(c.relpartbound, c.oid) as b(expr)
+         where c.relkind in ('r', 'p') and
                tn.nspname not in ('pg_catalog', 'information_schema')) as x

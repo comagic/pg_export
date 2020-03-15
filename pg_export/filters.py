@@ -11,3 +11,6 @@ def ljust(s, w, c):
 
 def rjust(s, w, c):
   return s.rjust(w, c)
+
+def join_attr(l, a, s):
+  return s.join(i.get(a) for i in l)
