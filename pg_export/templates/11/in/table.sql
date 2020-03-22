@@ -6,10 +6,22 @@ select json_agg(x)
                c.relpersistence = 'u' as unlogged,
                (select json_agg(x)
                   from (select a.attname as name,
-                               format_type(a.atttypid, a.atttypmod) as type,
+                               case
+                                 when s.is_serial
+                                   then case ft.type
+                                          when 'integer'
+                                            then 'serial'
+                                          when 'bigint'
+                                            then 'bigserial'
+                                        end
+                                 else ft.type
+                               end as type,
                                coll.collname as collate,
-                               a.attnotnull as not_null,
-                               cd.adsrc as default,
+                               a.attnotnull and not s.is_serial as not_null,
+                               case
+                                 when not s.is_serial
+                                   then cd.adsrc
+                               end as default,
                                d.description as comment,
                                a.attacl as acl,
                                nullif(a.attstattarget, -1) as statistics
@@ -25,6 +37,9 @@ select json_agg(x)
                           left join pg_description d
                                  on d.objoid = a.attrelid and
                                     d.objsubid = a.attnum
+                         cross join format_type(a.atttypid, a.atttypmod) as ft(type)
+                         cross join lateral (select cd.adsrc is not null and
+                                                    pg_get_serial_sequence(tn.nspname||'.'||c.relname, a.attname) is not null) as s(is_serial)
                          where a.attrelid = c.oid and
                                a.attnum > 0 and
                                not a.attisdropped
