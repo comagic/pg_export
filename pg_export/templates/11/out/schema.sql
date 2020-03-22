@@ -1,5 +1,10 @@
-create schema {{ name }};
+create SCHEMA {{ name }};
+{%- if acl %}
 
-{% if acl -%}
 {{ acl|acl_to_grants('schema', name) }}
-{% endif %}
+{%- endif %}
+{%- if comment %}
+
+comment on SCHEMA {{ name }} is '{{ comment }}';
+{%- endif %}
+

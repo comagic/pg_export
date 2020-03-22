@@ -60,7 +60,7 @@ def acl_to_grants(acl, obj_type, obj_name, subobj_name=''):
             acl.remove(function_public_acl)
         else:
             res.append('revoke all on %(obj_type)s %(obj_name)s from public;' % locals())
-    for a in sorted(acl):
+    for a in sorted('public'+ i if i.startswith('=') else i for i in acl):
         role, perm = a.split('/')[0].split('=') #format: role=perm/grantor
         if role == 'postgres':
             continue
