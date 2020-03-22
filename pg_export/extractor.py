@@ -7,6 +7,7 @@ from pg_export.render import render
 from pg_export.pg_items.schema import Schema
 from pg_export.pg_items.type import Type
 from pg_export.pg_items.table import Table
+from pg_export.pg_items.sequence import Sequence
 from pg_export.pg_items.function import Function
 
 directory_sql = '''
@@ -41,6 +42,7 @@ class Extractor:
         self.schemas = [Schema(i, self.version) for i in self.src['schemas']]
         self.types = [Type(i, self.version) for i in self.src['types']]
         self.tables = [Table(i, self.version) for i in self.src['tables']]
+        self.sequences = [Sequence(i, self.version) for i in self.src['sequences']]
         self.functions = [Function(i, self.version) for i in self.src['functions']]
 
     def dump_structure(self, root):
@@ -56,6 +58,8 @@ class Extractor:
                 os.mkdir(os.path.join(root, s.name, 'types'))
             if any(True for t in self.tables if t.schema == s.name):
                 os.mkdir(os.path.join(root, s.name, 'tables'))
+            if any(True for se in self.sequences if se.schema == s.name):
+                os.mkdir(os.path.join(root, s.name, 'sequences'))
             if any(True for f in self.functions if f.schema == s.name and f.directory == 'functions'):
                 os.mkdir(os.path.join(root, s.name, 'functions'))
             if any(True for f in self.functions if f.schema == s.name and f.directory == 'triggers'):
@@ -68,6 +72,9 @@ class Extractor:
 
         for t in self.tables:
             t.dump(root)
+
+        for s in self.sequences:
+            s.dump(root)
 
         for f in self.functions:
             f.dump(root)

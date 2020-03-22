@@ -8,6 +8,9 @@ select json_build_object(
            'tables',
            ({% include '11/in/table.sql' %}),
 
+           'sequences',
+           ({% include '11/in/sequence.sql' %}),
+
            'functions',
            ({% include '11/in/function.sql' %})
 
