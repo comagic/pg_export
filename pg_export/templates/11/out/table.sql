@@ -1,5 +1,5 @@
 create {%- if unlogged %} unlogged {%- endif %} table {{ full_name }} (
-    {%- include '10/out/attribute.sql' %}
+    {%- include '11/out/attribute.sql' %}
 )
 {%- if inherits %}
 inherits ({{ inherits|join_attr('table', ', ') }})
@@ -55,6 +55,13 @@ alter table {{ full_name }} add constraint {{ u.name }}
     unique ({{ u.columns|join(', ') }})
     {%- if u.deferrable %} deferrable {%- endif %}
     {%- if u.deferred %} initially deferred {%- endif %};
+{% endfor %}
+
+{%- for e in exclusions %}
+alter table {{ full_name }} add constraint {{ e.name }}
+    exclude using {{ e.access_method }} ({{ e.columns|concat_items(' with ', e.operators)|join(', ') }})
+    {%- if e.deferrable %} deferrable {%- endif %}
+    {%- if e.deferred %} initially deferred {%- endif %};
 {% endfor %}
 
 {%- for c in checks %}

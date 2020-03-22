@@ -33,9 +33,5 @@ class Table (Item):
                 if t['ftable_name']:
                     t['ftable'] = filters.get_full_name(t['ftable_schema'], t['ftable_name'])
 
-            if self.exclusions:
-                print 'WARNING: missed exclusion constraint (%s) on table %s, because not implemented :(' % \
-                                                   (','.join([e['name'] for e in self.exclusions]), self.full_name)
-
     def get_constraints(self, type_char):
         return self.constraints.get(type_char, [])

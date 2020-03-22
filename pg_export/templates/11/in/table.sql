@@ -39,16 +39,23 @@ select json_agg(x)
                                        ft.relname as ftable_name,
                                        fn.nspname as ftable_schema,
                                        consrc as src,
+                                       am.amname as access_method,
                                        array(select cl.attname
-                                               from unnest(conkey) with ordinality as k
-                                               join pg_attribute as cl on cl.attrelid = c.oid and cl.attnum = k
-                                               order by ordinality) as columns,
+                                               from unnest(cn.conkey) with ordinality as k
+                                               join pg_attribute cl on cl.attrelid = c.oid and cl.attnum = k
+                                              order by ordinality) as columns,
+                                       array(select op.oprname
+                                               from unnest(cn.conexclop) with ordinality as op_oid
+                                               join pg_operator op on op.oid = op_oid
+                                              order by ordinality) as operators,
                                        array(select cl.attname
-                                               from unnest(conkey) with ordinality as k
-                                               join pg_attribute as cl on cl.attrelid = c.oid and cl.attnum = k
+                                               from unnest(cn.confkey) with ordinality as k
+                                               join pg_attribute cl on cl.attrelid = c.oid and cl.attnum = k
                                                order by ordinality) as fcolumns
                                   from pg_constraint cn
                                   left join (pg_class ft join pg_namespace fn on fn.oid = ft.relnamespace) on ft.oid = confrelid
+                                  join pg_class i on i.oid = cn.conindid
+                                  join pg_am am on am.oid = i.relam
                                  where cn.conrelid = c.oid) as x
                           group by 1) as x) as constraints,
                (select coalesce(json_agg(x), '[]')
@@ -62,8 +69,9 @@ select json_agg(x)
                           from pg_index idx
                           join pg_class i on i.oid = idx.indexrelid
                           join pg_am am on am.oid = i.relam
+                          left join pg_constraint cn on cn.conindid = i.oid and cn.contype in ('p', 'u', 'x')
                          where idx.indrelid = c.oid and
-                                not indisprimary
+                               cn.conindid is null
                          order by idx.indisunique desc, i.relname is null) as x) as indexes,
                (select json_agg(x)
                   from (select tg.tgname as name,

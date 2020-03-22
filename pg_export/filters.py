@@ -14,3 +14,6 @@ def rjust(s, w, c):
 
 def join_attr(l, a, s):
   return s.join(i.get(a) for i in l)
+
+def concat_items(l1, s, l2):
+  return ['%s%s%s' % (i1, s, i2) for i1, i2 in zip(l1, l2)]
