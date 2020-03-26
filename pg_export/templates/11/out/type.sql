@@ -1,5 +1,5 @@
 {% if type == 'enum' -%}
-create type {{ full_name }} as enum (
+create TYPE {{ full_name }} as ENUM (
     {%- for l in enum_lables %}
     '{{ l }}' {%- if not loop.last %},{% endif %}
     {%- endfor %}
@@ -15,3 +15,4 @@ create type {{ full_name }} as (
 {% if acl -%}
 {{ acl|acl_to_grants('type', full_name) }}
 {% endif -%}
+{{"\n"}}

@@ -9,6 +9,7 @@ from pg_export.pg_items.type import Type
 from pg_export.pg_items.table import Table
 from pg_export.pg_items.sequence import Sequence
 from pg_export.pg_items.function import Function
+from pg_export.pg_items.aggregate import Aggregate
 
 directory_sql = '''
   select n.nspname as schema,
@@ -44,6 +45,7 @@ class Extractor:
         self.tables = [Table(i, self.version) for i in self.src['tables']]
         self.sequences = [Sequence(i, self.version) for i in self.src['sequences']]
         self.functions = [Function(i, self.version) for i in self.src['functions']]
+        self.aggregates = [Aggregate(i, self.version) for i in self.src['aggregates']]
 
     def dump_structure(self, root):
         self.extract_structure()
@@ -66,18 +68,19 @@ class Extractor:
                 os.mkdir(os.path.join(root, s.name, 'triggers'))
             if any(True for f in self.functions if f.schema == s.name and f.directory == 'procedures'):
                 os.mkdir(os.path.join(root, s.name, 'procedures'))
+            if any(True for f in self.aggregates if f.schema == s.name):
+                os.mkdir(os.path.join(root, s.name, 'aggregates'))
 
         for t in self.types:
             t.dump(root)
-
         for t in self.tables:
             t.dump(root)
-
         for s in self.sequences:
             s.dump(root)
-
         for f in self.functions:
             f.dump(root)
+        for a in self.aggregates:
+            a.dump(root)
 
     def dump_directory(self, root):
         tables = self.sql_execute(directory_sql)

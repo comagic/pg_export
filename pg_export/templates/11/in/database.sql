@@ -12,6 +12,9 @@ select json_build_object(
            ({% include '11/in/sequence.sql' %}),
 
            'functions',
-           ({% include '11/in/function.sql' %})
+           ({% include '11/in/function.sql' %}),
+
+           'aggregates',
+           ({% include '11/in/aggregate.sql' %})
 
        ) as src

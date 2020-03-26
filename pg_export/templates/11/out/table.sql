@@ -27,7 +27,7 @@ alter table only {{ attach.table }} attach partition {{ full_name }}
 {{ c.acl|acl_to_grants('column', full_name, c.name) }}
 {% endfor %}
 
-{%- if comment %}
+{%- if comment -%}
 comment on table {{ full_name }} is '{{ comment }}';
 {% endif %}
 
@@ -85,6 +85,7 @@ create {%- if i.is_unique %} unique {%- endif %} index {{ i.name }}
     using {{ i.access_method }} on {{ full_name }}({{ i.columns|join(', ') }});
 {% endfor %}
 
-{% for c in columns if c.statistics -%}
+{%- for c in columns if c.statistics -%}
 alter table only {{ full_name }} alter column {{ c.name }} set statistics {{ c.statistics }};
-{% endfor -%}
+{% endfor %}
+

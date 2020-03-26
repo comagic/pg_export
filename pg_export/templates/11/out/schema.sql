@@ -8,3 +8,4 @@ create SCHEMA {{ name }};
 comment on SCHEMA {{ name }} is '{{ comment }}';
 {%- endif %}
 
+
