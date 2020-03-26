@@ -10,7 +10,6 @@ class Function (Item):
     def __init__(self, src, version):
             super(Function, self).__init__(src, version)
 
-            self.full_name = filters.get_full_name(self.schema, self.name)
             self.with_out_args = any(True for a in self.arguments if a['mode'] == 'o')
             self.arguments_as_table = len(self.arguments) > 1 and \
                                       any(True for a in self.arguments
