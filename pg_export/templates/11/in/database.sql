@@ -1,4 +1,7 @@
 select json_build_object(
+           'casts',
+           ({% include '11/in/cast.sql' %}),
+
            'schemas',
            ({% include '11/in/schema.sql' %}),
 

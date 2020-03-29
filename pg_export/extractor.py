@@ -10,6 +10,7 @@ from pg_export.pg_items.table import Table
 from pg_export.pg_items.sequence import Sequence
 from pg_export.pg_items.function import Function
 from pg_export.pg_items.aggregate import Aggregate
+from pg_export.pg_items.cast import Cast
 
 directory_sql = '''
   select n.nspname as schema,
@@ -37,9 +38,22 @@ class Extractor:
         self.version = self.version.split()[1]                # get number
         self.version = '.'.join(self.version.split('.')[:-1]) # discard minor
 
+    def get_last_builin_oid(self):
+        """
+        postgresql-11.5/src/include/access/transam.h:
+        #define FirstNormalObjectId   16384
+
+        postgresql-11.5/src/bin/pg_dump/pg_dump.c:
+        g_last_builtin_oid = FirstNormalObjectId - 1;
+        """
+        self.last_builin_oid = 16384 - 1
+
     def extract_structure(self):
         self.get_version()
-        self.src = self.sql_execute(render(os.path.join(self.version, 'in', 'database.sql'), {}))[0]['src']
+        self.get_last_builin_oid()
+        self.src = self.sql_execute(render(os.path.join(self.version, 'in', 'database.sql'),
+                                           self.__dict__))[0]['src']
+        self.casts = [Cast(i, self.version) for i in self.src['casts']]
         self.schemas = [Schema(i, self.version) for i in self.src['schemas']]
         self.types = [Type(i, self.version) for i in self.src['types']]
         self.tables = [Table(i, self.version) for i in self.src['tables']]
@@ -49,6 +63,11 @@ class Extractor:
 
     def dump_structure(self, root):
         self.extract_structure()
+
+        if self.casts:
+            os.mkdir(os.path.join(root, 'casts'))
+        for c in self.casts:
+            c.dump(root)
 
         root = os.path.join(root, 'schema')
         os.mkdir(root)
@@ -68,7 +87,7 @@ class Extractor:
                 os.mkdir(os.path.join(root, s.name, 'triggers'))
             if any(True for f in self.functions if f.schema == s.name and f.directory == 'procedures'):
                 os.mkdir(os.path.join(root, s.name, 'procedures'))
-            if any(True for f in self.aggregates if f.schema == s.name):
+            if any(True for a in self.aggregates if a.schema == s.name):
                 os.mkdir(os.path.join(root, s.name, 'aggregates'))
 
         for t in self.types:
