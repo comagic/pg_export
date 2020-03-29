@@ -18,3 +18,8 @@ create sequence {{ full_name }}
     cycle
     {%- endif %};
 
+{%- if acl %}
+
+{{ acl|acl_to_grants('sequence', full_name) }}
+{% endif %}
+
