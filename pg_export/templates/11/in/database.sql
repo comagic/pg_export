@@ -2,6 +2,9 @@ select json_build_object(
            'casts',
            ({% include '11/in/cast.sql' %}),
 
+           'extensions',
+           ({% include '11/in/extension.sql' %}),
+
            'schemas',
            ({% include '11/in/schema.sql' %}),
 

@@ -4,13 +4,14 @@ import os
 import psycopg2
 import psycopg2.extras
 from pg_export.render import render
+from pg_export.pg_items.cast import Cast
+from pg_export.pg_items.extension import Extension
 from pg_export.pg_items.schema import Schema
 from pg_export.pg_items.type import Type
 from pg_export.pg_items.table import Table
 from pg_export.pg_items.sequence import Sequence
 from pg_export.pg_items.function import Function
 from pg_export.pg_items.aggregate import Aggregate
-from pg_export.pg_items.cast import Cast
 
 directory_sql = '''
   select n.nspname as schema,
@@ -54,6 +55,7 @@ class Extractor:
         self.src = self.sql_execute(render(os.path.join(self.version, 'in', 'database.sql'),
                                            self.__dict__))[0]['src']
         self.casts = [Cast(i, self.version) for i in self.src['casts']]
+        self.extensions = [Extension(i, self.version) for i in self.src['extensions']]
         self.schemas = [Schema(i, self.version) for i in self.src['schemas']]
         self.types = [Type(i, self.version) for i in self.src['types']]
         self.tables = [Table(i, self.version) for i in self.src['tables']]
@@ -66,8 +68,13 @@ class Extractor:
 
         if self.casts:
             os.mkdir(os.path.join(root, 'casts'))
+        if self.extensions:
+            os.mkdir(os.path.join(root, 'extensions'))
+
         for c in self.casts:
             c.dump(root)
+        for e in self.extensions:
+            e.dump(root)
 
         root = os.path.join(root, 'schema')
         os.mkdir(root)
