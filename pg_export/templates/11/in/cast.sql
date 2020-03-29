@@ -5,5 +5,5 @@ select json_agg(x)
                castcontext as context,
                castmethod as method
           from pg_cast с
-         where с.oid >= {{ last_builin_oid }}
+         where с.oid > {{ last_builin_oid }}
          order by 1, 2) as x
