@@ -5,6 +5,9 @@ select json_build_object(
            'extensions',
            ({% include '11/in/extension.sql' %}),
 
+           'servers',
+           ({% include '11/in/server.sql' %}),
+
            'schemas',
            ({% include '11/in/schema.sql' %}),
 

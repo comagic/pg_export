@@ -21,7 +21,7 @@ grant_all_pattern = {
     'column':         'arwx',
     'database':       'CTc',
     'fdw':            'U',
-    'foreign_server': 'U',
+    'foreign server': 'U',
     'function':       'X',
     'procedure':      'X',
     'language':       'U',

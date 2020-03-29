@@ -6,6 +6,7 @@ import psycopg2.extras
 from pg_export.render import render
 from pg_export.pg_items.cast import Cast
 from pg_export.pg_items.extension import Extension
+from pg_export.pg_items.server import Server
 from pg_export.pg_items.schema import Schema
 from pg_export.pg_items.type import Type
 from pg_export.pg_items.table import Table
@@ -34,10 +35,10 @@ class Extractor:
         res = c.fetchall()
         return res
 
-    def get_version(self):
-        self.version = self.sql_execute('select version()')[0]['version']
-        self.version = self.version.split()[1]                # get number
-        self.version = '.'.join(self.version.split('.')[:-1]) # discard minor
+    def get_pg_version(self):
+        self.pg_version = self.sql_execute('select version()')[0]['version']
+        self.pg_version = self.pg_version.split()[1]                # get number
+        self.pg_version = '.'.join(self.pg_version.split('.')[:-1]) # discard minor
 
     def get_last_builin_oid(self):
         """
@@ -50,18 +51,19 @@ class Extractor:
         self.last_builin_oid = 16384 - 1
 
     def extract_structure(self):
-        self.get_version()
+        self.get_pg_version()
         self.get_last_builin_oid()
-        self.src = self.sql_execute(render(os.path.join(self.version, 'in', 'database.sql'),
+        self.src = self.sql_execute(render(os.path.join(self.pg_version, 'in', 'database.sql'),
                                            self.__dict__))[0]['src']
-        self.casts = [Cast(i, self.version) for i in self.src['casts']]
-        self.extensions = [Extension(i, self.version) for i in self.src['extensions']]
-        self.schemas = [Schema(i, self.version) for i in self.src['schemas']]
-        self.types = [Type(i, self.version) for i in self.src['types']]
-        self.tables = [Table(i, self.version) for i in self.src['tables']]
-        self.sequences = [Sequence(i, self.version) for i in self.src['sequences']]
-        self.functions = [Function(i, self.version) for i in self.src['functions']]
-        self.aggregates = [Aggregate(i, self.version) for i in self.src['aggregates']]
+        self.casts = [Cast(i, self.pg_version) for i in self.src['casts'] or []]
+        self.extensions = [Extension(i, self.pg_version) for i in self.src['extensions'] or []]
+        self.servers = [Server(i, self.pg_version) for i in self.src['servers'] or []]
+        self.schemas = [Schema(i, self.pg_version) for i in self.src['schemas'] or []]
+        self.types = [Type(i, self.pg_version) for i in self.src['types'] or []]
+        self.tables = [Table(i, self.pg_version) for i in self.src['tables'] or []]
+        self.sequences = [Sequence(i, self.pg_version) for i in self.src['sequences'] or []]
+        self.functions = [Function(i, self.pg_version) for i in self.src['functions'] or []]
+        self.aggregates = [Aggregate(i, self.pg_version) for i in self.src['aggregates'] or []]
 
     def dump_structure(self, root):
         self.extract_structure()
@@ -70,11 +72,15 @@ class Extractor:
             os.mkdir(os.path.join(root, 'casts'))
         if self.extensions:
             os.mkdir(os.path.join(root, 'extensions'))
+        if self.servers:
+            os.mkdir(os.path.join(root, 'servers'))
 
         for c in self.casts:
             c.dump(root)
         for e in self.extensions:
             e.dump(root)
+        for s in self.servers:
+            s.dump(root)
 
         root = os.path.join(root, 'schema')
         os.mkdir(root)
