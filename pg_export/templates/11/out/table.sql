@@ -37,7 +37,7 @@ comment on column {{ full_name }}.{{ c.name }} is '{{ c.comment }}';
 
 {%- if primary_key %}
 alter table {{ full_name }} add constraint {{ primary_key.name }}
-    primary key({{ primary_key.columns|join(', ') }})
+    primary key ({{ primary_key.columns|join(', ') }})
     {%- if primary_key.deferrable %} deferrable {%- endif %}
     {%- if primary_key.deferred %} initially deferred {%- endif %};
 {% endif %}

@@ -69,8 +69,8 @@ select json_agg(x)
                                                order by ordinality) as fcolumns
                                   from pg_constraint cn
                                   left join (pg_class ft join pg_namespace fn on fn.oid = ft.relnamespace) on ft.oid = confrelid
-                                  join pg_class i on i.oid = cn.conindid
-                                  join pg_am am on am.oid = i.relam
+                                  left join pg_class i on i.oid = cn.conindid
+                                  left join pg_am am on am.oid = i.relam
                                  where cn.conrelid = c.oid) as x
                           group by 1) as x) as constraints,
                (select coalesce(json_agg(x), '[]')
