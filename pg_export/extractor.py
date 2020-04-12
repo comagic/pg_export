@@ -9,6 +9,7 @@ from pg_export.pg_items.extension import Extension
 from pg_export.pg_items.server import Server
 from pg_export.pg_items.schema import Schema
 from pg_export.pg_items.type import Type
+from pg_export.pg_items.view import View
 from pg_export.pg_items.table import Table
 from pg_export.pg_items.sequence import Sequence
 from pg_export.pg_items.function import Function
@@ -61,6 +62,7 @@ class Extractor:
         self.schemas = [Schema(i, self.pg_version) for i in self.src['schemas'] or []]
         self.types = [Type(i, self.pg_version) for i in self.src['types'] or []]
         self.tables = [Table(i, self.pg_version) for i in self.src['tables'] or []]
+        self.views = [View(i, self.pg_version) for i in self.src['views'] or []]
         self.sequences = [Sequence(i, self.pg_version) for i in self.src['sequences'] or []]
         self.functions = [Function(i, self.pg_version) for i in self.src['functions'] or []]
         self.aggregates = [Aggregate(i, self.pg_version) for i in self.src['aggregates'] or []]
@@ -92,6 +94,8 @@ class Extractor:
                 os.mkdir(os.path.join(root, s.name, 'types'))
             if any(True for t in self.tables if t.schema == s.name):
                 os.mkdir(os.path.join(root, s.name, 'tables'))
+            if any(True for v in self.views if v.schema == s.name):
+                os.mkdir(os.path.join(root, s.name, 'views'))
             if any(True for se in self.sequences if se.schema == s.name):
                 os.mkdir(os.path.join(root, s.name, 'sequences'))
             if any(True for f in self.functions if f.schema == s.name and f.directory == 'functions'):
@@ -107,6 +111,8 @@ class Extractor:
             t.dump(root)
         for t in self.tables:
             t.dump(root)
+        for v in self.views:
+            v.dump(root)
         for s in self.sequences:
             s.dump(root)
         for f in self.functions:

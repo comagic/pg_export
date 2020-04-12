@@ -17,6 +17,9 @@ select json_build_object(
            'tables',
            ({% include '11/in/table.sql' %}),
 
+           'views',
+           ({% include '11/in/view.sql' %}),
+
            'sequences',
            ({% include '11/in/sequence.sql' %}),
 
