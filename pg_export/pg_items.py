@@ -1,7 +1,7 @@
 import re
 import os
 
-WORDS_TO_LOWER = ['CREATE', 'ALTER', 'TABLE', 'FUNCTION', 'INDEX', ' CAST ', ' CASCADE',
+WORDS_TO_LOWER = ['CREATE', 'ALTER', 'TABLE', 'EXECUTE FUNCTION', 'FUNCTION', 'INDEX', ' CAST ', ' CASCADE',
                   'GRANT', 'REVOKE', ' TO ', ' FROM ', ' ALL ', 'PUBLIC', 'DEFERRABLE', 'INITIALLY DEFERRED',
                   'TRIGGER', 'AFTER', 'BEFORE', 'EACH ROW', 'EXECUTE PROCEDURE', 'LANGUAGE', ' AS',
                   'DEFAULT', 'NOT NULL', 'USING', 'SELECT', 'INSERT ', 'UPDATE ', 'DELETE ',
