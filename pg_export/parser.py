@@ -58,6 +58,7 @@ class Parser:
         dump = re.sub('SET search_path = .*;\n', '', dump)
         dump = re.sub('SET default_tablespace = \'\';\n', '', dump)
         dump = re.sub('SET default_with_oids = false;\n', '', dump)
+        dump = re.sub('SET default_table_access_method = .*;\n', '', dump)
         dump = dump.replace('--\n-- PostgreSQL database dump complete\n--', '')
         dump = re.split('--\n-- Name: ', dump)
         self.dump_version = map(int, re.match('.*pg_dump version ([\d\.]+)', dump.pop(0).split('\n')[5]).groups()[0].split('.'))
