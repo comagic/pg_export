@@ -8,7 +8,7 @@ create TYPE {{ full_name }} as ENUM (
 
 {%- if type == 'composite' -%}
 create type {{ full_name }} as (
-    {%- include '11/out/attribute.sql' %}
+    {%- include '12/out/attribute.sql' %}
 );
 {% endif -%}
 
