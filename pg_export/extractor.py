@@ -18,8 +18,9 @@ from pg_export.pg_items.aggregate import Aggregate
 directory_sql = '''
   select n.nspname as schema,
          t.relname as name,
-         (select (regexp_matches(obj_description(t.oid),
-                                 'synchronized directory\((.*)\)'))[1]) as cond
+         (select (regexp_matches(
+                    obj_description(t.oid),
+                    'synchronized directory\\((.*)\\)'))[1]) as cond
     from pg_class t
     join pg_namespace n on t.relnamespace = n.oid
    where relkind = 'r' and
@@ -38,8 +39,10 @@ class Extractor:
 
     def get_pg_version(self):
         self.pg_version = self.sql_execute('select version()')[0]['version']
-        self.pg_version = self.pg_version.split()[1]                # get number
-        self.pg_version = '.'.join(self.pg_version.split('.')[:-1]) # discard minor
+        # get number
+        self.pg_version = self.pg_version.split()[1]
+        # discard minor
+        self.pg_version = '.'.join(self.pg_version.split('.')[:-1])
 
     def get_last_builin_oid(self):
         """
@@ -54,18 +57,32 @@ class Extractor:
     def extract_structure(self):
         self.get_pg_version()
         self.get_last_builin_oid()
-        self.src = self.sql_execute(render(os.path.join(self.pg_version, 'in', 'database.sql'),
-                                           self.__dict__))[0]['src']
-        self.casts = [Cast(i, self.pg_version) for i in self.src['casts'] or []]
-        self.extensions = [Extension(i, self.pg_version) for i in self.src['extensions'] or []]
-        self.servers = [Server(i, self.pg_version) for i in self.src['servers'] or []]
-        self.schemas = [Schema(i, self.pg_version) for i in self.src['schemas'] or []]
-        self.types = [Type(i, self.pg_version) for i in self.src['types'] or []]
-        self.tables = [Table(i, self.pg_version) for i in self.src['tables'] or []]
-        self.views = [View(i, self.pg_version) for i in self.src['views'] or []]
-        self.sequences = [Sequence(i, self.pg_version) for i in self.src['sequences'] or []]
-        self.functions = [Function(i, self.pg_version) for i in self.src['functions'] or []]
-        self.aggregates = [Aggregate(i, self.pg_version) for i in self.src['aggregates'] or []]
+        self.src = self.sql_execute(
+                        render(
+                            os.path.join(
+                                self.pg_version, 'in', 'database.sql'),
+                            self.__dict__))[0]['src']
+
+        self.casts = [Cast(i, self.pg_version)
+                      for i in self.src['casts'] or []]
+        self.extensions = [Extension(i, self.pg_version)
+                           for i in self.src['extensions'] or []]
+        self.servers = [Server(i, self.pg_version)
+                        for i in self.src['servers'] or []]
+        self.schemas = [Schema(i, self.pg_version)
+                        for i in self.src['schemas'] or []]
+        self.types = [Type(i, self.pg_version)
+                      for i in self.src['types'] or []]
+        self.tables = [Table(i, self.pg_version)
+                       for i in self.src['tables'] or []]
+        self.views = [View(i, self.pg_version)
+                      for i in self.src['views'] or []]
+        self.sequences = [Sequence(i, self.pg_version)
+                          for i in self.src['sequences'] or []]
+        self.functions = [Function(i, self.pg_version)
+                          for i in self.src['functions'] or []]
+        self.aggregates = [Aggregate(i, self.pg_version)
+                           for i in self.src['aggregates'] or []]
 
     def dump_structure(self, root):
         self.extract_structure()
@@ -90,21 +107,37 @@ class Extractor:
         for s in self.schemas:
             os.mkdir(os.path.join(root, s.name))
             s.dump(root)
-            if any(True for t in self.types if t.schema == s.name):
+            if any(True
+                   for t in self.types
+                   if t.schema == s.name):
                 os.mkdir(os.path.join(root, s.name, 'types'))
-            if any(True for t in self.tables if t.schema == s.name):
+            if any(True
+                   for t in self.tables
+                   if t.schema == s.name):
                 os.mkdir(os.path.join(root, s.name, 'tables'))
-            if any(True for v in self.views if v.schema == s.name):
+            if any(True
+                   for v in self.views
+                   if v.schema == s.name):
                 os.mkdir(os.path.join(root, s.name, 'views'))
-            if any(True for se in self.sequences if se.schema == s.name):
+            if any(True
+                   for se in self.sequences
+                   if se.schema == s.name):
                 os.mkdir(os.path.join(root, s.name, 'sequences'))
-            if any(True for f in self.functions if f.schema == s.name and f.directory == 'functions'):
+            if any(True
+                   for f in self.functions
+                   if f.schema == s.name and f.directory == 'functions'):
                 os.mkdir(os.path.join(root, s.name, 'functions'))
-            if any(True for f in self.functions if f.schema == s.name and f.directory == 'triggers'):
+            if any(True
+                   for f in self.functions
+                   if f.schema == s.name and f.directory == 'triggers'):
                 os.mkdir(os.path.join(root, s.name, 'triggers'))
-            if any(True for f in self.functions if f.schema == s.name and f.directory == 'procedures'):
+            if any(True
+                   for f in self.functions
+                   if f.schema == s.name and f.directory == 'procedures'):
                 os.mkdir(os.path.join(root, s.name, 'procedures'))
-            if any(True for a in self.aggregates if a.schema == s.name):
+            if any(True
+                   for a in self.aggregates
+                   if a.schema == s.name):
                 os.mkdir(os.path.join(root, s.name, 'aggregates'))
 
         for t in self.types:
@@ -132,14 +165,20 @@ class Extractor:
             os.mkdir(os.path.join(root, s))
 
         for t in tables:
-            table_name = '.'.join([t['schema'], t['name']]).replace('public.', '')
+            table_name = '.'.join([t['schema'],
+                                   t['name']]).replace('public.', '')
 
             if t['cond'] and t['cond'].startswith('select'):
                 query = t['cond']
             else:
-                query = 'select * from %s %s order by 1' % (table_name, 'where ' + t['cond'] if t['cond'] else '')
+                query = 'select * from %s %s order by 1' % (
+                            table_name,
+                            'where ' + t['cond'] if t['cond'] else ''
+                        )
 
-            with open(os.path.join(root, t['schema'], t['name']+'.sql'), 'w') as f:
+            with open(os.path.join(root,
+                                   t['schema'],
+                                   t['name']+'.sql'), 'w') as f:
                 f.write('copy %s from stdin;\n' % table_name)
                 self.connect.cursor().copy_to(f, '(%s)' % query)
                 f.write('\\.\n')

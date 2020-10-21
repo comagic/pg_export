@@ -3,19 +3,24 @@ def get_full_name(schema, name):
         return name
     return '%s.%s' % (schema, name)
 
+
 def untype_default(default, column_type):
     return default.replace("'::"+column_type, "'") \
                   .replace("'::public."+column_type[-1], "'") \
                   .replace("'::"+column_type.split('.')[-1], "'")
 
-def ljust(s, w, c):
-  return s.ljust(w, c)
 
-def rjust(s, w, c):
-  return s.rjust(w, c)
+def ljust(string, width, fillchar):
+    return string.ljust(width, fillchar)
 
-def join_attr(l, a, s):
-  return s.join(i.get(a) for i in l)
+
+def rjust(string, width, fillchar):
+    return string.rjust(width, fillchar)
+
+
+def join_attr(ittr, attribute, delimiter):
+    return delimiter.join(i.get(attribute) for i in ittr)
+
 
 def concat_items(l1, s, l2):
-  return ['%s%s%s' % (i1, s, i2) for i1, i2 in zip(l1, l2)]
+    return ['%s%s%s' % (i1, s, i2) for i1, i2 in zip(l1, l2)]

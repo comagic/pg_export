@@ -1,5 +1,5 @@
 
-#from src/include/utils/acl.h
+# from src/include/utils/acl.h
 acl_map = {
     'a': 'insert',
     'r': 'select',
@@ -9,7 +9,7 @@ acl_map = {
     'x': 'references',
     't': 'trigger',
     'X': 'execute',
-    'U': 'usage',
+    'U': 'USAGE',
     'C': 'create',
     'T': 'temp',
     'c': 'connect'
@@ -36,19 +36,23 @@ grant_all_pattern = {
 
 function_public_acl = '=X/postgres'
 
-grant_all_pattern_with_grant_option = {k: '*'.join(v)+'*' for k, v in grant_all_pattern.items()}
+grant_all_pattern_with_grant_option = {k: '*'.join(v)+'*'
+                                       for k, v in grant_all_pattern.items()}
 
 
 def resolve_perm(obj_type, perm):
-        gr_opt = ''
-        if grant_all_pattern[obj_type] == perm:
-            perm = 'all'
-        elif grant_all_pattern_with_grant_option[obj_type] == perm:
-            perm = 'all'
-            gr_opt = ' with grant option'
-        else:
-            perm = ', '.join(acl_map[c] for c in sorted(perm, key=lambda x:acl_order.find(x)))
-        return perm, gr_opt
+    gr_opt = ''
+    if grant_all_pattern[obj_type] == perm:
+        perm = 'all'
+    elif grant_all_pattern_with_grant_option[obj_type] == perm:
+        perm = 'all'
+        gr_opt = ' with grant option'
+    else:
+        perm = ', '.join(acl_map[c]
+                         for c in sorted(perm,
+                                         key=lambda x: acl_order.find(x)))
+    return perm, gr_opt
+
 
 def acl_to_grants(acl, obj_type, obj_name, subobj_name=''):
     if not acl:
@@ -59,17 +63,25 @@ def acl_to_grants(acl, obj_type, obj_name, subobj_name=''):
         if function_public_acl in acl:
             acl.remove(function_public_acl)
         else:
-            res.append('revoke all on %(obj_type)s %(obj_name)s from public;' % locals())
-    for a in sorted('public'+ i if i.startswith('=') else i for i in acl):
-        role, perm = a.split('/')[0].split('=') #format: role=perm/grantor
+            res.append(
+                'revoke all on %(obj_type)s %(obj_name)s from public;'
+                % locals())
+    for a in sorted('public' + i if i.startswith('=') else i
+                    for i in acl):
+        role, perm = a.split('/')[0].split('=')  # format: role=perm/grantor
         if role == 'postgres':
             continue
 
-        if subobj_name: #column
+        if subobj_name:  # column
             subobj_name = '(%s) ' % subobj_name
 
         perm, gr_opt = resolve_perm(obj_type, perm)
         if obj_type == 'column':
             obj_type = 'table'
-        res.append('grant %(perm)s %(subobj_name)son %(obj_type)s %(obj_name)s to %(role)s;' % locals())
+        res.append(
+            'grant %(perm)s %(subobj_name)son %(obj_type)s '
+            '%(obj_name)s to %(role)s;'
+            % dict(
+                locals(),
+                obj_type='SCHEMA' if obj_type == 'schema' else obj_type))
     return '\n'.join(res)
