@@ -1,1 +1,10 @@
+*/__pycache__/*
 *.pyc
+*.conf
+.cache
+*.egg*
+*.ve*
+.coverage
+.report*
+build*
+.pytest_cache*
