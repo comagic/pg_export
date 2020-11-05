@@ -6,6 +6,7 @@ import psycopg2.extras
 from pg_export.render import render
 from pg_export.pg_items.cast import Cast
 from pg_export.pg_items.extension import Extension
+from pg_export.pg_items.language import Language
 from pg_export.pg_items.server import Server
 from pg_export.pg_items.schema import Schema
 from pg_export.pg_items.type import Type
@@ -14,6 +15,7 @@ from pg_export.pg_items.table import Table
 from pg_export.pg_items.sequence import Sequence
 from pg_export.pg_items.function import Function
 from pg_export.pg_items.aggregate import Aggregate
+from pg_export.pg_items.operator import Operator
 
 directory_sql = '''
   select n.nspname as schema,
@@ -28,8 +30,11 @@ directory_sql = '''
 
 
 class Extractor:
+
     def __init__(self, connect):
         self.connect = connect
+        self.INDOPTION_DESC = 0x0001         # src/backend/catalog/pg_index_d.h
+        self.INDOPTION_NULLS_FIRST = 0x0002  # src/backend/catalog/pg_index_d.h
 
     def sql_execute(self, query, **query_params):
         c = self.connect.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
@@ -52,7 +57,7 @@ class Extractor:
         postgresql-11.5/src/bin/pg_dump/pg_dump.c:
         g_last_builtin_oid = FirstNormalObjectId - 1;
         """
-        self.last_builin_oid = 16384 - 1
+        self.last_builin_oid = 16384 - 1     # src/include/access/transam.h
 
     def extract_structure(self):
         self.get_pg_version()
@@ -67,6 +72,8 @@ class Extractor:
                       for i in self.src['casts'] or []]
         self.extensions = [Extension(i, self.pg_version)
                            for i in self.src['extensions'] or []]
+        self.languages = [Language(i, self.pg_version)
+                          for i in self.src['languages'] or []]
         self.servers = [Server(i, self.pg_version)
                         for i in self.src['servers'] or []]
         self.schemas = [Schema(i, self.pg_version)
@@ -83,21 +90,18 @@ class Extractor:
                           for i in self.src['functions'] or []]
         self.aggregates = [Aggregate(i, self.pg_version)
                            for i in self.src['aggregates'] or []]
+        self.operators = [Operator(i, self.pg_version)
+                          for i in self.src['operators'] or []]
 
     def dump_structure(self, root):
         self.extract_structure()
-
-        if self.casts:
-            os.mkdir(os.path.join(root, 'casts'))
-        if self.extensions:
-            os.mkdir(os.path.join(root, 'extensions'))
-        if self.servers:
-            os.mkdir(os.path.join(root, 'servers'))
 
         for c in self.casts:
             c.dump(root)
         for e in self.extensions:
             e.dump(root)
+        for i in self.languages:
+            i.dump(root)
         for s in self.servers:
             s.dump(root)
 
@@ -105,41 +109,7 @@ class Extractor:
         os.mkdir(root)
 
         for s in self.schemas:
-            os.mkdir(os.path.join(root, s.name))
             s.dump(root)
-            if any(True
-                   for t in self.types
-                   if t.schema == s.name):
-                os.mkdir(os.path.join(root, s.name, 'types'))
-            if any(True
-                   for t in self.tables
-                   if t.schema == s.name):
-                os.mkdir(os.path.join(root, s.name, 'tables'))
-            if any(True
-                   for v in self.views
-                   if v.schema == s.name):
-                os.mkdir(os.path.join(root, s.name, 'views'))
-            if any(True
-                   for se in self.sequences
-                   if se.schema == s.name):
-                os.mkdir(os.path.join(root, s.name, 'sequences'))
-            if any(True
-                   for f in self.functions
-                   if f.schema == s.name and f.directory == 'functions'):
-                os.mkdir(os.path.join(root, s.name, 'functions'))
-            if any(True
-                   for f in self.functions
-                   if f.schema == s.name and f.directory == 'triggers'):
-                os.mkdir(os.path.join(root, s.name, 'triggers'))
-            if any(True
-                   for f in self.functions
-                   if f.schema == s.name and f.directory == 'procedures'):
-                os.mkdir(os.path.join(root, s.name, 'procedures'))
-            if any(True
-                   for a in self.aggregates
-                   if a.schema == s.name):
-                os.mkdir(os.path.join(root, s.name, 'aggregates'))
-
         for t in self.types:
             t.dump(root)
         for t in self.tables:
@@ -152,6 +122,8 @@ class Extractor:
             f.dump(root)
         for a in self.aggregates:
             a.dump(root)
+        for o in self.operators:
+            o.dump(root)
 
     def dump_directory(self, root):
         tables = self.sql_execute(directory_sql)

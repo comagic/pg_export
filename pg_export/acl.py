@@ -9,7 +9,7 @@ acl_map = {
     'x': 'references',
     't': 'trigger',
     'X': 'execute',
-    'U': 'USAGE',
+    'U': 'usage',
     'C': 'create',
     'T': 'temp',
     'c': 'connect'
@@ -81,7 +81,5 @@ def acl_to_grants(acl, obj_type, obj_name, subobj_name=''):
         res.append(
             'grant %(perm)s %(subobj_name)son %(obj_type)s '
             '%(obj_name)s to %(role)s;'
-            % dict(
-                locals(),
-                obj_type='SCHEMA' if obj_type == 'schema' else obj_type))
+            % locals())
     return '\n'.join(res)

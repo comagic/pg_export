@@ -1,6 +1,7 @@
 select json_agg(x)
   from (select quote_ident(s.srvname) as name,
                quote_ident(w.fdwname) as wrapper,
+               quote_literal(d.description) as comment,
                s.srvacl as acl,
                quote_literal(s.srvtype) as type,
                quote_literal(s.srvversion) as version,
@@ -32,6 +33,7 @@ select json_agg(x)
                          on a.oid = m.umuser
                  where m.srvid = s.oid) as user_mappings
           from pg_foreign_server s
+          {% with objid='s.oid', objclass='pg_foreign_server' -%} {% include '12/in/_join_description_as_d.sql' %} {% endwith %}
          inner join pg_foreign_data_wrapper w
                  on w.oid = s.srvfdw
          order by 1) as x

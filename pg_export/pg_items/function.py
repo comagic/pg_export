@@ -3,7 +3,7 @@ from pg_export.pg_items.item import Item
 
 class Function (Item):
     template = 'out/function.sql'
-    template_signature = 'out/function_signature.sql'
+    template_signature = 'out/_signature.sql'
     directory = 'functions'
 
     def __init__(self, src, version):

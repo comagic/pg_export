@@ -15,10 +15,11 @@ class Item (object):
             self.full_name = filters.get_full_name(self.schema, self.name)
 
     def dump(self, root):
+        if not os.path.isdir(os.path.join(root, self.schema, self.directory)):
+            os.mkdir(os.path.join(root, self.schema, self.directory))
         render_to_file(os.path.join(self.pg_version, self.template),
                        self.__dict__,
-                       (root, self.schema,
-                        self.directory,
+                       (root, self.schema, self.directory,
                         self.name.replace('"', '') + self.ext))
 
     def render(self, template):

@@ -93,4 +93,5 @@ setup(
     install_requires=install_requires,
     tests_require=tests_require,
     cmdclass={'test': PyTest},
+    include_package_data=True
 )

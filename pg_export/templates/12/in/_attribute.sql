@@ -1,10 +1,10 @@
 select coalesce(json_agg(x), '[]')
-  from (select a.attname as name,
+  from (select quote_ident(a.attname) as name,
                format_type(a.atttypid, a.atttypmod) as type,
-               coll.collname as collate,
+               quote_ident(coll.collname) as collate,
                a.attnotnull as not_null,
                pg_get_expr(cd.adbin, cd.adrelid) as default,
-               d.description as comment,
+               quote_literal(d.description) as comment,
                a.attacl as acl,
                nullif(a.attstattarget, -1) as statistics
           from pg_attribute a
@@ -16,9 +16,7 @@ select coalesce(json_agg(x), '[]')
           left join pg_attrdef cd
                  on cd.adrelid = a.attrelid and
                     cd.adnum = a.attnum
-          left join pg_description d
-                 on d.objoid = a.attrelid and
-                    d.objsubid = a.attnum
+          {% with objid='c.oid', objclass='pg_class', objsubid='a.attnum' -%} {% include '12/in/_join_description_as_d.sql' %} {% endwith %}
          where a.attrelid = c.oid and
                a.attnum > 0 and
                not a.attisdropped

@@ -1,5 +1,5 @@
 create or replace
-{% if kind == 'p' -%} procedure {%- else -%} function {%- endif %} {{ full_name }}({% include '12/out/function_argument.sql' %})
+{%- if kind == 'p' %} procedure {%- else %} function {%- endif %} {{ full_name }}({% include '12/out/_argument.sql' %})
 {%- if kind != 'p' %} returns
 {%- if returns_type == 'table' %} table(
 {%- for c in columns %}
@@ -21,9 +21,7 @@ create or replace
 {%- if cost != 100 %} cost {{ cost }} {%- endif %}
 {%- if rows != 1000 and setof %} rows {{ rows }} {%- endif %}
 {%- if config %} set {{ config|join(' set ') }} {%- endif %};
-{%- for t in depend_on_tables %}
---depend on table {{ t.schema }}.{{ t.name }}
-{%- endfor %}
+
 {%- if acl %}
 
 {{ acl|acl_to_grants('procedure' if kind == 'p' else 'function', signature) }}
@@ -33,5 +31,4 @@ create or replace
 
 comment on {% if kind == 'p' -%} procedure {%- else -%} function {%- endif %} {{ signature }} is {{ comment }};
 {%- endif %}
-
 

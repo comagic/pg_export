@@ -1,6 +1,7 @@
 select json_agg(x)
-  from (select n.nspname as schema,
-               c.relname as name,
+  from (select quote_ident(n.nspname) as schema,
+               quote_ident(c.relname) as name,
+               quote_literal(d.description) as comment,
                c.relacl as acl,
                nullif(seqstart, 1) as start,
                nullif(seqincrement, 1) as increment,
@@ -9,14 +10,14 @@ select json_agg(x)
                nullif(seqcache, 1) as cache,
                seqcycle as cycle
           from pg_sequence s
-          left join pg_class c
+         inner join pg_class c
                  on c.oid = s.seqrelid
          inner join pg_namespace n
                  on n.oid = c.relnamespace
-          left join pg_description d on d.objoid = c.oid and d.objsubid = 0
+          {% with objid='c.oid', objclass='pg_class' -%} {% include '12/in/_join_description_as_d.sql' %} {% endwith %}
          where n.nspname not in ('pg_catalog', 'pg_toast', 'information_schema') and
-               not exists (select 1
-                             from pg_depend d
-                            where d.objid = c.oid and
-                                  d.classid = 'pg_class'::regclass and
-                                  deptype = 'a')) as x
+               not exists (select *
+                             from pg_depend dep
+                            where dep.objid = c.oid and
+                                  dep.classid = 'pg_class'::regclass and
+                                  dep.deptype in ('a', 'e'))) as x

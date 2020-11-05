@@ -7,7 +7,10 @@ from pg_export.acl import acl_to_grants
 from pg_export.filters import (untype_default, ljust,
                                rjust, join_attr, concat_items)
 
-env = Environment(loader=FileSystemLoader('pg_export/templates'))
+env = Environment(loader=FileSystemLoader(
+                            os.path.join(
+                                os.path.dirname(__file__),
+                                'templates')))
 
 env.filters['acl_to_grants'] = acl_to_grants
 env.filters['untype_default'] = untype_default
@@ -29,4 +32,6 @@ def render(template_name, context):
 def render_to_file(template_name, context, file_name):
     if isinstance(file_name, tuple):
         file_name = os.path.join(*file_name)
+    if os.path.isfile(file_name):
+        open(file_name, 'a').write('\n')
     open(file_name, 'ab').write(render(template_name, context).encode('utf8'))

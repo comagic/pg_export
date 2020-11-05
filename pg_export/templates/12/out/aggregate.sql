@@ -1,65 +1,71 @@
-create aggregate {{ full_name }}({% include '12/out/function_argument.sql' %}) (
-    sfunc = {{ sfunc }},
-    stype = {{ stype }}
+create aggregate {{ full_name }}({% include '12/out/_argument.sql' %}) (
+  sfunc = {{ sfunc }},
+  stype = {{ stype }}
 {%- if sspace %},
-    sspace = {{ sspace }}
+  sspace = {{ sspace }}
 {%- endif %}
 {%- if finalfunc != '-' %},
-    finalfunc = {{ finalfunc }}
+  finalfunc = {{ finalfunc }}
 {%- endif %}
 {%- if finalfunc_extra %},
-    finalfunc_extra
+  finalfunc_extra
 {%- endif %}
 {%- if finalfunc != '-' and finalfunc_modify %},
-    finalfunc_modify = {%- if finalfunc_modify == 'r' %} read_only
-                       {%- elif finalfunc_modify == 'r' %} shareable
-                       {%- elif finalfunc_modify == 'w' %} read_write
-                       {%- endif %}
+  finalfunc_modify = {%- if finalfunc_modify == 'r' %} read_only
+                     {%- elif finalfunc_modify == 'r' %} shareable
+                     {%- elif finalfunc_modify == 'w' %} read_write
+                     {%- endif %}
 {%- endif %}
 {%- if combinefunc != '-' %},
-    combinefunc = {{ combinefunc }}
+  combinefunc = {{ combinefunc }}
 {%- endif %}
 {%- if serialfunc != '-' %},
-    serialfunc = {{ serialfunc }}
+  serialfunc = {{ serialfunc }}
 {%- endif %}
 {%- if deserialfunc != '-' %},
-    deserialfunc = {{ deserialfunc }}
+  deserialfunc = {{ deserialfunc }}
 {%- endif %}
 {%- if initcond %},
-    initcond = {{ initcond }}
+  initcond = {{ initcond }}
 {%- endif %}
 {%- if msfunc != '-' %},
-    msfunc = {{ msfunc }}
+  msfunc = {{ msfunc }}
 {%- endif %}
 {%- if minvfunc != '-' %},
-    minvfunc = {{ minvfunc }}
+  minvfunc = {{ minvfunc }}
 {%- endif %}
 {%- if mstype != '-' %},
-    mstype = {{ mstype }}
+  mstype = {{ mstype }}
 {%- endif %}
 {%- if msspace %},
-    msspace = {{ msspace }}
+  msspace = {{ msspace }}
 {%- endif %}
 {%- if mfinalfunc != '-' %},
-    mfinalfunc = {{ mfinalfunc }}
+  mfinalfunc = {{ mfinalfunc }}
 {%- endif %}
 {%- if mfinalfunc_extra %},
-    mfinalfunc_extra = {{ mfinalfunc_extra }}
+  mfinalfunc_extra = {{ mfinalfunc_extra }}
 {%- endif %}
 {%- if mfinalfunc != '-' and mfinalfunc_modify %},
-    mfinalfunc_modify = {%- if mfinalfunc_modify == 'r' %} read_only
-                        {%- elif mfinalfunc_modify == 'r' %} shareable
-                        {%- elif mfinalfunc_modify == 'w' %} read_write
-                        {%- endif %}
+  mfinalfunc_modify = {%- if mfinalfunc_modify == 'r' %} read_only
+                      {%- elif mfinalfunc_modify == 'r' %} shareable
+                      {%- elif mfinalfunc_modify == 'w' %} read_write
+                      {%- endif %}
 {%- endif %}
 {%- if minitcond %},
-    minitcond = {{ minitcond }}
+  minitcond = {{ minitcond }}
 {%- endif %}
 {%- if sortop %},
-    sortop = {{ sortop }}
+  sortop = {{ sortop }}
 {%- endif %}
 {%- if kind == 'h' %},
-    hypothetical
+  hypothetical
+{%- endif %}
+{%- if parallel == 'r' %},
+  parallel = restrict
+{%- endif %}
+{%- if parallel == 's' %},
+  parallel = safe
 {%- endif %}
 );
 {%- if acl %}
@@ -71,5 +77,4 @@ create aggregate {{ full_name }}({% include '12/out/function_argument.sql' %}) (
 
 comment on aggregate {{ signature }} is {{ comment }};
 {%- endif %}
-
 

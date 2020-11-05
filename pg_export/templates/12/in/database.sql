@@ -5,6 +5,9 @@ select json_build_object(
            'extensions',
            ({% include '12/in/extension.sql' %}),
 
+           'languages',
+           ({% include '12/in/language.sql' %}),
+
            'servers',
            ({% include '12/in/server.sql' %}),
 
@@ -27,6 +30,9 @@ select json_build_object(
            ({% include '12/in/function.sql' %}),
 
            'aggregates',
-           ({% include '12/in/aggregate.sql' %})
+           ({% include '12/in/aggregate.sql' %}),
+
+           'operators',
+           ({% include '12/in/operator.sql' %})
 
        ) as src

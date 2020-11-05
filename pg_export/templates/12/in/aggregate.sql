@@ -1,8 +1,9 @@
 select json_agg(x)
   from (select quote_ident(n.nspname) as schema,
                quote_ident(p.proname) as name,
+               quote_literal(d.description) as comment,
                a.aggkind as kind,
-               ({% include '12/in/function_argument.sql' %}) as arguments,
+               ({% include '12/in/_argument.sql' %}) as arguments,
                a.aggtransfn as sfunc,
                format_type(a.aggtranstype, -1) as stype,
                a.aggtransspace as sspace,
@@ -23,7 +24,7 @@ select json_agg(x)
                quote_literal(a.aggminitval) as minitcond,
                op.oprname as sortop,
                p.proacl as acl,
-               quote_literal(d.description) as comment
+               p.proparallel as parallel
           from pg_aggregate a
          inner join pg_proc p
                  on p.oid = a.aggfnoid
@@ -31,7 +32,7 @@ select json_agg(x)
                  on n.oid = p.pronamespace
           left join pg_operator op
                  on op.oid = a.aggsortop
-          left join pg_description d
-                 on d.objoid = p.oid
-         where n.nspname not in ('pg_catalog', 'pg_toast', 'information_schema')
+          {% with objid='p.oid', objclass='pg_proc' -%} {% include '12/in/_join_description_as_d.sql' %} {% endwith %}
+         where n.nspname not in ('pg_catalog', 'pg_toast', 'information_schema') and
+               {% with objid='p.oid', objclass='pg_proc' %} {% include '12/in/_not_part_of_extension.sql' %} {% endwith %}
          order by 1, 2) as x
