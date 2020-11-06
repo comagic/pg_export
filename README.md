@@ -1,6 +1,8 @@
-usage: pg_export [--help] [--clean] [-h HOST] [-p PORT] [-U USERNAME] [-W PASSWORD] dbname out_dir
+usage: pg_export [--help] [--clean] [-h HOST] [-p PORT] [-U USERNAME]
+                 [-W PASSWORD]
+                 dbname out_dir
 
-Splite pg_dump file to object files for control version system
+Export structure of databese to object files for control version system
 
 positional arguments:
   dbname                source databese name
