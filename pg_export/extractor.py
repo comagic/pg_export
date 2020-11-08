@@ -105,7 +105,7 @@ class Extractor:
         for s in self.servers:
             s.dump(root)
 
-        root = os.path.join(root, 'schema')
+        root = os.path.join(root, 'schemas')
         os.mkdir(root)
 
         for s in self.schemas:
