@@ -15,7 +15,7 @@ partition by {%- if partition_by.strategy == 'r' %} range
              {%- endif %} ({{ partition_by.columns|join(', ') }})
 {%- endif %}
 {%- if server %}
-server {{ server }})
+server {{ server }}
 {%- endif %}
 {%- if foreign_options %}
 options ({{ foreign_options|join(', ') }})
