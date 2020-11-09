@@ -38,6 +38,8 @@ class Table (Item):
             if t['ftable_name']:
                 t['ftable'] = get_full_name(t['ftable_schema'],
                                             t['ftable_name'])
+        if self.kind == 'f':
+            self.directory = 'foreigntables'
 
     def get_constraints(self, type_char):
         return self.constraints.get(type_char, [])

@@ -5,6 +5,12 @@ select json_agg(x)
                c.relacl as acl,
                c.relpersistence = 'u' as unlogged,
                c.reloptions as options,
+               (select array_agg(format('%%s %%L',
+                                        split_part(u, '=', 1),
+                                        split_part(u, '=', 2)))
+                  from unnest(ft.ftoptions) u) as foreign_options,
+               quote_ident(fs.srvname) as server,
+               c.relkind as kind,
                (select json_agg(x)
                   from (select quote_ident(a.attname) as name,
                                case
@@ -52,7 +58,7 @@ select json_agg(x)
                                        not cn.convalidated as not_valid,
                                        quote_ident(ft.relname) as ftable_name,
                                        quote_ident(fn.nspname) as ftable_schema,
-                                       pg_get_expr(cn.conbin, cn.conrelid) as src,
+                                       pg_get_expr(cn.conbin, cn.conrelid, true) as src,
                                        am.amname as access_method,
                                        confupdtype as on_update,
                                        confdeltype as on_delete,
@@ -192,9 +198,13 @@ select json_agg(x)
                  on n.oid = c.relnamespace
           left join pg_partitioned_table p
                  on p.partrelid = c.oid
+          left join pg_foreign_table ft
+                 on ft.ftrelid = c.oid
+          left join pg_foreign_server fs
+                 on fs.oid = ft.ftserver
           {% with objid='c.oid', objclass='pg_class' -%} {% include '12/in/_join_description_as_d.sql' %} {% endwith %}
          cross join pg_get_expr(c.relpartbound, c.oid) as b(expr)
-         where c.relkind in ('r', 'p') and
+         where c.relkind in ('r', 'p', 'f') and
                n.nspname not in ('pg_catalog', 'information_schema') and
                {% with objid='c.oid', objclass='pg_class' %} {% include '12/in/_not_part_of_extension.sql' %} {% endwith %}
          order by 1, 2) as x

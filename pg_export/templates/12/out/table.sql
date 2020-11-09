@@ -1,4 +1,5 @@
-create {%- if unlogged %} unlogged {%- endif %} table {{ full_name }} (
+create {%- if unlogged %} unlogged {%- endif %}
+       {%- if kind == 'f' %} foreign {%- endif %} table {{ full_name }} (
   {%- include '12/out/_attribute.sql' %}
 )
 {%- if options %}
@@ -12,6 +13,12 @@ partition by {%- if partition_by.strategy == 'r' %} range
              {%- elif partition_by.strategy == 'l' %} list
              {%- elif partition_by.strategy == 'h' %} hash
              {%- endif %} ({{ partition_by.columns|join(', ') }})
+{%- endif %}
+{%- if server %}
+server {{ server }})
+{%- endif %}
+{%- if foreign_options %}
+options ({{ foreign_options|join(', ') }})
 {%- endif %};
 
 {%- if attach %}
