@@ -45,4 +45,4 @@ select coalesce(json_agg(x), '[]')
                     cn.contype in ('p', 'u', 'x')
          where idx.indrelid = c.oid and
                cn.conindid is null
-         order by idx.indisunique desc, i.relname is null) as x
+         order by idx.indisunique desc, i.relname) as x
