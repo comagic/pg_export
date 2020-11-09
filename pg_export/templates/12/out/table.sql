@@ -23,7 +23,7 @@ alter table only {{ attach.table }} attach partition {{ full_name }}
   {%- endif %};
 {%- endif %}
 
-{%- if acl or columns|selectattr('acl')|first() %}
+{%- if acl and acl|acl_to_grants('table', full_name) or columns|selectattr('acl')|first() %}
 {% if acl %}
 {{ acl|acl_to_grants('table', full_name) }}
 {%- endif %}
