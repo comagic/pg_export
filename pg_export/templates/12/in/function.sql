@@ -40,5 +40,5 @@ select json_agg(x)
          where n.nspname not in ('pg_catalog', 'pg_toast', 'information_schema') and
                p.prokind in ('f', 'p', 'w') and
                {% with objid='p.oid', objclass='pg_proc' %} {% include '12/in/_not_part_of_extension.sql' %} {% endwith %}
-         order by 1, 2, cardinality(proargtypes), p.proargnames) as x
+         order by 1, 2, arguments) as x
 

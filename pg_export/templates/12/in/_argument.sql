@@ -1,5 +1,5 @@
 select coalesce(
-         json_agg(
+         jsonb_agg(
            json_build_object(
              'type', format_type(u.typeoid, -1),
              'name', quote_ident(nullif(p.proargnames[n], '')),
