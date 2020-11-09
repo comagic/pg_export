@@ -9,7 +9,7 @@ create or replace
 {%- endfor %}
 {%- if columns|length > 1 -%} {{"\n"}} {%- endif -%}
 ){% else %} {% if setof -%} SETOF {% endif -%} {{ returns_type }}{% endif -%}
-{%- endif -%}{# if kind != 'p' #} as {% if binary_file %}'{{binary_file}}', {% endif -%} $${{ body }}$$ language {{ language }}
+{%- endif -%}{# if kind != 'p' #} as {% if binary_file %}'{{binary_file}}', {% endif -%} $${{ body|replace('\r', '') }}$$ language {{ language }}
 {%- if kind == 'w' %} window {%- endif %}
 {%- if volatile == 's' %} stable {%- endif %}
 {%- if volatile == 'i' %} immutable {%- endif %}
