@@ -1,6 +1,7 @@
 # -*- coding:utf-8 -*-
 
 import os
+import re
 import psycopg2
 import psycopg2.extras
 from pg_export.render import render
@@ -44,10 +45,16 @@ class Extractor:
 
     def get_pg_version(self):
         self.pg_version = self.sql_execute('select version()')[0]['version']
-        # get number
-        self.pg_version = self.pg_version.split()[1]
-        # discard minor
-        self.pg_version = '.'.join(self.pg_version.split('.')[:-1])
+        match = re.match('.*Greenplum Database (\\d+.\\d+)', self.pg_version)
+        if match:
+            self.pg_version = 'GP_' + match.groups()[0]
+        else:
+            match = re.match('PostgreSQL (\\d+)', self.pg_version)
+            if match:
+                self.pg_version = 'PG_' + match.groups()[0]
+            else:
+                raise Exception('Could not determine the version number: ' +
+                                self.pg_version)
 
     def get_last_builin_oid(self):
         """
@@ -62,6 +69,9 @@ class Extractor:
     def extract_structure(self):
         self.get_pg_version()
         self.get_last_builin_oid()
+        if not os.path.isdir(os.path.join(os.path.dirname(__file__),
+                                          'templates', self.pg_version)):
+            raise Exception('Version not suported: ' + self.pg_version)
         self.src = self.sql_execute(
                         render(
                             os.path.join(

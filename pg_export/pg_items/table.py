@@ -41,5 +41,30 @@ class Table (Item):
         if self.kind == 'f':
             self.directory = 'foreigntables'
 
+        if 'gp_partitions' in self.__dict__:
+            self.gp_partitions = self.normalize_gp_partitions(
+                                    self.gp_partitions)
+            self.gp_subpartition_template = self.normalize_gp_partitions(
+                                                self.gp_subpartition_template)
+
     def get_constraints(self, type_char):
         return self.constraints.get(type_char, [])
+
+    def normalize_gp_partitions(self, partitions):
+        res = []
+        np = None
+        start = None
+        for i, p in enumerate(partitions):
+            if i < len(partitions) - 1:
+                np = partitions[i + 1]
+
+            start = start or p['start']
+
+            if not (np is not None and
+                    p['every'] == np['every'] and
+                    p['end'] == np['start']):
+                res.append({'start': start,
+                            'end': p['end'],
+                            'every': p['every']})
+                start = None
+        return res

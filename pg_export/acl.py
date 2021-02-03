@@ -34,7 +34,7 @@ grant_all_pattern = {
     'type':           'U'
 }
 
-function_public_acl = '=X/postgres'
+function_public_acl = ['=X/postgres', '=X/gpadmin']
 
 grant_all_pattern_with_grant_option = {k: '*'.join(v)+'*'
                                        for k, v in grant_all_pattern.items()}
@@ -60,8 +60,10 @@ def acl_to_grants(acl, obj_type, obj_name, subobj_name=''):
 
     res = []
     if obj_type in ['function', 'procedure']:
-        if function_public_acl in acl:
-            acl.remove(function_public_acl)
+        for fpa in function_public_acl:
+            if fpa in acl:
+                acl.remove(fpa)
+                break
         else:
             res.append(
                 'revoke all on %(obj_type)s %(obj_name)s from public;'
@@ -69,7 +71,7 @@ def acl_to_grants(acl, obj_type, obj_name, subobj_name=''):
     for a in sorted('public' + i if i.startswith('=') else i
                     for i in acl):
         role, perm = a.split('/')[0].split('=')  # format: role=perm/grantor
-        if role == 'postgres':
+        if role in ['postgres', 'gpadmin']:
             continue
 
         if subobj_name:  # column
