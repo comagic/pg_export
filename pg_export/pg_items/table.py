@@ -64,7 +64,9 @@ class Table (Item):
                     p['every'] == np['every'] and
                     p['end'] == np['start']):
                 res.append({'start': start,
+                            'start_inclusive': p['start_inclusive'],
                             'end': p['end'],
+                            'end_inclusive': p['end_inclusive'],
                             'every': p['every']})
                 start = None
         return res

@@ -5,7 +5,9 @@ with w_subpartition_template as (
          json_agg(
            json_build_object(
              'start', p.partitionrangestart,
+             'start_inclusive', p.partitionstartinclusive,
              'end', p.partitionrangeend,
+             'end_inclusive', p.partitionendinclusive,
              'every', case
                         when ts_range.start is not null
                           then format('''%%s''::interval', age(ts_range.end, ts_range.start))
@@ -31,7 +33,9 @@ w_partitions as (
          json_agg(
              json_build_object(
                'start', p.partitionrangestart,
+               'start_inclusive', p.partitionstartinclusive,
                'end', p.partitionrangeend,
+               'end_inclusive', p.partitionendinclusive,
                'every', case
                           when ts_range.start is not null
                             then format('''%%s''::interval', age(ts_range.end, ts_range.start))
@@ -237,7 +241,19 @@ select json_agg(x)
                             a.attnum = u.key) as distributed_by,
                null as partition_by,
                null as attach,
+               par.parkind as gp_partition_kind,
+               (select array_agg(a.attname order by pa.i)
+                  from unnest(par.paratts) with ordinality as pa(num, i)
+                 inner join pg_attribute a
+                         on a.attrelid = par.parrelid and
+                            a.attnum = pa.num) as gp_partition_columns,
                coalesce(pr.partitions, '[]') as gp_partitions,
+               spar.parkind as gp_subpartition_kind,
+               (select array_agg(a.attname order by pa.i)
+                  from unnest(spar.paratts) with ordinality as pa(num, i)
+                 inner join pg_attribute a
+                         on a.attrelid = spar.parrelid and
+                            a.attnum = pa.num) as gp_subpartition_columns,
                coalesce(pr.subpartition_template, '[]') as gp_subpartition_template
           from pg_class c
          inner join pg_namespace n
@@ -251,6 +267,14 @@ select json_agg(x)
           left join w_partitions pr
                  on pr.schemaname = n.nspname and
                     pr.tablename = c.relname
+          left join pg_partition par
+                 on par.parrelid = c.oid and
+                    par.parlevel = 0 and
+                    not par.paristemplate
+          left join pg_partition spar
+                 on spar.parrelid = c.oid and
+                    spar.parlevel = 1 and
+                    spar.paristemplate
           {% with objid='c.oid', objclass='pg_class' -%} {% include 'GP_6.13/in/_join_description_as_d.sql' %} {% endwith %}
          where c.relkind in ('r', 'p', 'f') and
                n.nspname not in ('pg_catalog', 'information_schema', 'pg_bitmapindex') and

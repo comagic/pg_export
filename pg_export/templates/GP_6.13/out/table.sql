@@ -18,18 +18,24 @@ distributed randomly
 {%- endif %}
 
 {%- if gp_partitions %}
-partition by range (ts)
-  subpartition by range (app_group)
+partition by {%- if gp_partition_kind == 'l' %} list
+             {%- elif gp_partition_kind == 'r' %} range
+             {%- endif %} ({{ gp_partition_columns|join(', ') }})
+  {%- if gp_subpartition_template %}
+  subpartition by {%- if gp_subpartition_kind == 'l' %} list
+                  {%- elif gp_subpartition_kind == 'r' %} range
+                  {%- endif %} ({{ gp_subpartition_columns|join(', ') }})
     subpartition template (
       {%- for st in gp_subpartition_template %}
-      start ({{ st.start }}) inclusive
-      end ({{ st.end }}) exclusive
+      start ({{ st.start }}) {%- if st.start_inclusive %} inclusive {%- else %} exclusive {%- endif %}
+      end ({{ st.end }}) {%- if st.end_inclusive %} inclusive {%- else %} exclusive {%- endif %}
       every ({{ st.every }})
       {%- if not loop.last %},{% endif %}
       {%- endfor %})
+  {%- endif %}
   ({% for p in gp_partitions -%}
-   start ({{ p.start }}) inclusive
-   end   ({{ p.end }}) exclusive
+   start ({{ p.start }}) {%- if p.start_inclusive %} inclusive {%- else %} exclusive {%- endif %}
+   end   ({{ p.end }}) {%- if p.end_inclusive %} inclusive {%- else %} exclusive {%- endif %}
    every ({{ p.every }})
    {%- if not loop.last %}{{ ',\n   ' }}{% endif %}
    {%- endfor %})
