@@ -9,7 +9,7 @@ select json_agg(x)
                  when 'c'
                    then 'composite'
                end as type,
-               (select array_agg(e.enumlabel order by enumsortorder)
+               (select coalesce(array_agg(e.enumlabel order by enumsortorder), '{}')
                   from pg_enum e
                  where enumtypid = t.oid) as enum_lables,
                ({% include 'PG_12/in/_attribute.sql' %}) as columns
