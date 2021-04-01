@@ -10,7 +10,7 @@ from pg_export.filters import (untype_default, ljust,
 env = Environment(loader=FileSystemLoader(
                             os.path.join(
                                 os.path.dirname(__file__),
-                                'templates')))
+                                'templates').replace('\\', '/')))
 
 env.filters['acl_to_grants'] = acl_to_grants
 env.filters['untype_default'] = untype_default
@@ -22,6 +22,7 @@ env.filters['concat_items'] = concat_items
 
 def render(template_name, context):
     try:
+        template_name = template_name.replace('\\', '/')
         res = env.get_template(template_name).render(context)
     except Exception:
         print("Error on render template:", template_name, file=sys.stderr)

@@ -160,7 +160,9 @@ class Extractor:
 
             with open(os.path.join(root,
                                    t['schema'],
-                                   t['name']+'.sql'), 'w') as f:
+                                   t['name'] + '.sql'),
+                      'w',
+                      encoding="utf-8") as f:
                 f.write('copy %s from stdin;\n' % table_name)
                 self.connect.cursor().copy_to(f, '(%s)' % query)
                 f.write('\\.\n')
