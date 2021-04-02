@@ -4,7 +4,7 @@ import os
 import re
 import psycopg2
 import psycopg2.extras
-from pg_export.render import render
+from pg_export.renderer import Renderer
 from pg_export.pg_items.cast import Cast
 from pg_export.pg_items.extension import Extension
 from pg_export.pg_items.language import Language
@@ -31,11 +31,12 @@ directory_sql = '''
 
 
 class Extractor:
-
     def __init__(self, connect):
         self.connect = connect
         self.INDOPTION_DESC = 0x0001         # src/backend/catalog/pg_index_d.h
         self.INDOPTION_NULLS_FIRST = 0x0002  # src/backend/catalog/pg_index_d.h
+        self.get_last_builtin_oid()
+        self.create_renderer()
 
     def sql_execute(self, query, **query_params):
         c = self.connect.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
@@ -43,20 +44,21 @@ class Extractor:
         res = c.fetchall()
         return res
 
-    def get_pg_version(self):
-        self.pg_version = self.sql_execute('select version()')[0]['version']
-        match = re.match('.*Greenplum Database (\\d+.\\d+)', self.pg_version)
+    def get_version(self):
+        version = self.sql_execute('select version()')[0]['version']
+        match = re.match('.*Greenplum Database (\\d+).(\\d+).(\\d+)', version)
         if match:
-            self.pg_version = 'GP_' + match.groups()[0]
+            version = 'gp_', match.groups()
         else:
-            match = re.match('PostgreSQL (\\d+)', self.pg_version)
+            match = re.match('PostgreSQL (\\d+).(\\d+)', version)
             if match:
-                self.pg_version = 'PG_' + match.groups()[0]
+                version = 'pg_', match.groups()
             else:
                 raise Exception('Could not determine the version number: ' +
-                                self.pg_version)
+                                version)
+        return version
 
-    def get_last_builin_oid(self):
+    def get_last_builtin_oid(self):
         """
         postgresql-11.5/src/include/access/transam.h:
         #define FirstNormalObjectId   16384
@@ -64,43 +66,41 @@ class Extractor:
         postgresql-11.5/src/bin/pg_dump/pg_dump.c:
         g_last_builtin_oid = FirstNormalObjectId - 1;
         """
-        self.last_builin_oid = 16384 - 1     # src/include/access/transam.h
+        self.last_builtin_oid = 16384 - 1     # src/include/access/transam.h
+
+    def create_renderer(self):
+        fork, version = self.get_version()
+        self.renderer = Renderer(fork, version)
 
     def extract_structure(self):
-        self.get_pg_version()
-        self.get_last_builin_oid()
-        if not os.path.isdir(os.path.join(os.path.dirname(__file__),
-                                          'templates', self.pg_version)):
-            raise Exception('Version not suported: ' + self.pg_version)
         self.src = self.sql_execute(
-                        render(
-                            os.path.join(
-                                self.pg_version, 'in', 'database.sql'),
+                        self.renderer.render(
+                            os.path.join('in', 'database.sql'),
                             self.__dict__))[0]['src']
 
-        self.casts = [Cast(i, self.pg_version)
+        self.casts = [Cast(i, self.renderer)
                       for i in self.src['casts'] or []]
-        self.extensions = [Extension(i, self.pg_version)
+        self.extensions = [Extension(i, self.renderer)
                            for i in self.src['extensions'] or []]
-        self.languages = [Language(i, self.pg_version)
+        self.languages = [Language(i, self.renderer)
                           for i in self.src['languages'] or []]
-        self.servers = [Server(i, self.pg_version)
+        self.servers = [Server(i, self.renderer)
                         for i in self.src['servers'] or []]
-        self.schemas = [Schema(i, self.pg_version)
+        self.schemas = [Schema(i, self.renderer)
                         for i in self.src['schemas'] or []]
-        self.types = [Type(i, self.pg_version)
+        self.types = [Type(i, self.renderer)
                       for i in self.src['types'] or []]
-        self.tables = [Table(i, self.pg_version)
+        self.tables = [Table(i, self.renderer)
                        for i in self.src['tables'] or []]
-        self.views = [View(i, self.pg_version)
+        self.views = [View(i, self.renderer)
                       for i in self.src['views'] or []]
-        self.sequences = [Sequence(i, self.pg_version)
+        self.sequences = [Sequence(i, self.renderer)
                           for i in self.src['sequences'] or []]
-        self.functions = [Function(i, self.pg_version)
+        self.functions = [Function(i, self.renderer)
                           for i in self.src['functions'] or []]
-        self.aggregates = [Aggregate(i, self.pg_version)
+        self.aggregates = [Aggregate(i, self.renderer)
                            for i in self.src['aggregates'] or []]
-        self.operators = [Operator(i, self.pg_version)
+        self.operators = [Operator(i, self.renderer)
                           for i in self.src['operators'] or []]
 
     def dump_structure(self, root):

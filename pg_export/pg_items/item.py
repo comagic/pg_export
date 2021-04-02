@@ -1,5 +1,4 @@
 import os
-from pg_export.render import render, render_to_file
 import pg_export.filters as filters
 
 
@@ -8,19 +7,20 @@ class Item (object):
     directory = None
     ext = '.sql'
 
-    def __init__(self, src, pg_version):
+    def __init__(self, src, renderer):
         self.__dict__.update(src)
-        self.pg_version = pg_version
+        self.renderer = renderer
         if 'schema' in self.__dict__ and 'name' in self.__dict__:
             self.full_name = filters.get_full_name(self.schema, self.name)
 
     def dump(self, root):
         if not os.path.isdir(os.path.join(root, self.schema, self.directory)):
             os.mkdir(os.path.join(root, self.schema, self.directory))
-        render_to_file(os.path.join(self.pg_version, self.template),
-                       self.__dict__,
-                       (root, self.schema, self.directory,
-                        self.name.replace('"', '') + self.ext))
+        self.renderer.render_to_file(
+            self.template,
+            self.__dict__,
+            (root, self.schema, self.directory,
+             self.name.replace('"', '') + self.ext))
 
     def render(self, template):
-        return render(os.path.join(self.pg_version, template), self.__dict__)
+        return self.renderer.render(template, self.__dict__)
