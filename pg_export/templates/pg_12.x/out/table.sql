@@ -87,6 +87,7 @@ alter table {{ full_name }} add constraint {{ u.name }}
 
 alter table {{ full_name }} add constraint {{ e.name }}
   exclude using {{ e.access_method }} ({{ e.columns|concat_items(' with ', e.operators)|join(', ') }})
+  {%- if e.predicate %} where {{ e.predicate }} {%- endif %}
   {%- if e.deferrable %} deferrable {%- endif %}
   {%- if e.deferred %} initially deferred {%- endif %};
 {%- endfor %}

@@ -63,6 +63,7 @@ select json_agg(x)
                                        confupdtype as on_update,
                                        confdeltype as on_delete,
                                        confmatchtype as match_type,
+                                       pg_get_expr(idx.indpred, idx.indrelid) as predicate,
                                        array(select case
                                                       when cn.contype = 'x'
                                                         then pg_get_indexdef(cn.conindid, ck.i::int, false)
@@ -89,6 +90,8 @@ select json_agg(x)
                                              inner join pg_namespace fn
                                                      on fn.oid = ft.relnamespace)
                                          on ft.oid = confrelid
+                                  left join pg_index idx
+                                         on idx.indexrelid = cn.conindid
                                   left join pg_class i
                                          on i.oid = cn.conindid
                                   left join pg_am am
