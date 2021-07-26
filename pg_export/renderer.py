@@ -55,6 +55,6 @@ class Renderer:
         if isinstance(file_name, tuple):
             file_name = self.join_path(*file_name)
         if os.path.isfile(file_name):
-            open(file_name, 'a').write('\n')
+            open(file_name, 'a', newline='\n').write('\n')
         open(file_name, 'ab').write(
             self.render(template_name, context).encode('utf8'))
