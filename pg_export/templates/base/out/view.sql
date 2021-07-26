@@ -1,4 +1,4 @@
-create {%- if kind == 'm' %} materialized {%- endif %} view {{ full_name }} as
+create {%- if kind == 'm' %} materialized {%- else %} or replace {%- endif %} view {{ full_name }} as
 {{ query }}
 {%- if kind == 'm' %}
 with no data
