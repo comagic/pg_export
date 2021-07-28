@@ -64,21 +64,15 @@ select json_agg(x)
                                        confdeltype as on_delete,
                                        confmatchtype as match_type,
                                        pg_get_expr(idx.indpred, idx.indrelid) as predicate,
-                                       array(select case
-                                                      when cn.contype = 'x'
-                                                        then pg_get_indexdef(cn.conindid, ck.i::int, false)
-                                                      else quote_ident(cl.attname)
-                                                    end
+                                       array(select quote_ident(cl.attname)
                                                from unnest(cn.conkey) with ordinality as ck(key, i)
                                                left join pg_attribute cl
                                                       on cl.attrelid = cn.conrelid and
                                                          cl.attnum = ck.key
+                                              where cn.contype not in ('p', 'u', 'x')
                                               order by ck.i) as columns,
-                                       array(select op.oprname
-                                               from unnest(cn.conexclop) with ordinality as op_oid
-                                              inner join pg_operator op
-                                                      on op.oid = op_oid
-                                              order by ordinality) as operators,
+                                       ({% with operators='cn.conexclop' %} {% include 'in/_index_columns.sql' %} {% endwith %}
+                                         where cn.contype in ('p', 'u', 'x')) as idx_columns,
                                        array(select quote_ident(cl.attname)
                                                from unnest(cn.confkey) with ordinality as k
                                               inner join pg_attribute cl

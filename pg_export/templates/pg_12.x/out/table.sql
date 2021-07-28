@@ -51,7 +51,7 @@ comment on column {{ full_name }}.{{ c.name }} is {{ c.comment }};
 {%- if primary_key %}
 
 alter table {{ full_name }} add constraint {{ primary_key.name }}
-  primary key ({{ primary_key.columns|join(', ') }})
+  primary key {% with idx_columns=primary_key.idx_columns %} {%- include 'out/_index_columns.sql' %} {%- endwith %}
   {%- if primary_key.deferrable %} deferrable {%- endif %}
   {%- if primary_key.deferred %} initially deferred {%- endif %};
 {%- endif %}
@@ -78,7 +78,7 @@ alter table {{ full_name }} add constraint {{ fk.name }}
 {%- for u in uniques %}
 
 alter table {{ full_name }} add constraint {{ u.name }}
-  unique ({{ u.columns|join(', ') }})
+  unique {% with idx_columns=u.idx_columns %} {%- include 'out/_index_columns.sql' %} {%- endwith %}
   {%- if u.deferrable %} deferrable {%- endif %}
   {%- if u.deferred %} initially deferred {%- endif %};
 {%- endfor %}
@@ -86,7 +86,7 @@ alter table {{ full_name }} add constraint {{ u.name }}
 {%- for e in exclusions %}
 
 alter table {{ full_name }} add constraint {{ e.name }}
-  exclude using {{ e.access_method }} ({{ e.columns|concat_items(' with ', e.operators)|join(', ') }})
+  exclude using {{ e.access_method }} {% with idx_columns=e.idx_columns %} {%- include 'out/_index_columns.sql' %} {%- endwith %}
   {%- if e.predicate %} where {{ e.predicate }} {%- endif %}
   {%- if e.deferrable %} deferrable {%- endif %}
   {%- if e.deferred %} initially deferred {%- endif %};
