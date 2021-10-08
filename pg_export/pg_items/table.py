@@ -20,10 +20,6 @@ class Table (Item):
         for i in self.inherits:
             i['table'] = get_full_name(i['table_schema'], i['table_name'])
 
-        for i in self.indexes:
-            i['include_columns'] = [c for c in i['columns'] if c['is_include']]
-            i['columns'] = [c for c in i['columns'] if not c['is_include']]
-
         if self.attach:
             self.attach.update(self.inherits[0])
             self.inherits = []
