@@ -20,14 +20,16 @@ select json_agg(
            'operator', op.oprname) order by u.i)
   from unnest(idx.indkey::int[], idx.indcollation, idx.indclass, idx.indoption,
               {% if operators %} {{ operators }} {% else %} null::oid[] {% endif %} ) with ordinality u(key, coll, class, option, op_oid, i)
-  left join pg_attribute a
+  left join pg_attribute ia  -- index attribute
+         on ia.attrelid = idx.indexrelid and
+            ia.attnum = u.i
+  left join pg_attribute a  -- table attribute
          on a.attrelid = idx.indrelid and
             a.attnum = u.key
-  left join pg_type ct
-         on ct.oid = a.atttypid
   left join pg_collation coll
-         on coll.oid = a.attcollation and
-            a.attcollation <> ct.typcollation
+         on coll.oid = ia.attcollation and
+            coll.collname <> 'default' and
+            a.attcollation is distinct from ia.attcollation
   left join pg_opclass oc
          on oc.oid = u.class and
             not oc.opcdefault
