@@ -3,7 +3,6 @@
 import sys
 import os
 from jinja2 import Environment, FileSystemLoader
-from pg_export.acl import acl_to_grants
 from pg_export.filters import (untype_default, ljust,
                                rjust, join_attr, concat_items)
 
@@ -29,7 +28,6 @@ class Renderer:
                 self.join_path(os.path.dirname(__file__), 'templates', p)
                 for p in path]))
 
-        self.env.filters['acl_to_grants'] = acl_to_grants
         self.env.filters['untype_default'] = untype_default
         self.env.filters['ljust'] = ljust
         self.env.filters['rjust'] = rjust

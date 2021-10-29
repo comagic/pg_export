@@ -12,9 +12,9 @@ create server {{ name }}
              {% endif %}
              {%- endfor %});
 
-{%- if acl %}
+{%- if grants %}
 
-{{ acl|acl_to_grants('foreign server', name) }}
+{{ grants }}
 {%- endif %}
 
 {%- if comment %}

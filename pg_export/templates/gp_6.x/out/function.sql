@@ -24,9 +24,9 @@ create or replace function {{ full_name }}({% include 'out/_argument.sql' %}) re
 {%- if rows != 1000 and setof %} rows {{ rows }} {%- endif %}
 {%- if config %} set {{ config|join(' set ') }} {%- endif %};
 
-{%- if acl %}
+{%- if grants %}
 
-{{ acl|acl_to_grants('function', signature) }}
+{{ grants }}
 {%- endif %}
 
 {%- if comment %}

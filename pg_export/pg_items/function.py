@@ -1,4 +1,5 @@
 from pg_export.pg_items.item import Item
+from pg_export.acl import acl_to_grants
 
 
 class Function (Item):
@@ -39,3 +40,7 @@ class Function (Item):
             self.directory = 'triggers'
         if self.kind == 'p':
             self.directory = 'procedures'
+        self.grants = acl_to_grants(
+                        self.acl,
+                        'procedure' if self.kind == 'p' else 'function',
+                        self.signature)

@@ -22,9 +22,9 @@ create or replace
 {%- if rows != 1000 and setof %} rows {{ rows }} {%- endif %}
 {%- if config %} set {{ config|join(' set ') }} {%- endif %};
 
-{%- if acl %}
+{%- if grants %}
 
-{{ acl|acl_to_grants('procedure' if kind == 'p' else 'function', signature) }}
+{{ grants }}
 {%- endif %}
 
 {%- if comment %}

@@ -1,5 +1,6 @@
 from pg_export.pg_items.item import Item
 from pg_export.filters import get_full_name
+from pg_export.acl import acl_to_grants
 
 
 class Table (Item):
@@ -16,6 +17,7 @@ class Table (Item):
         self.checks = self.get_constraints('c')
         self.exclusions = self.get_constraints('x')
         self.triggers = self.triggers or []
+        self.grants = acl_to_grants(self.acl, 'table', self.full_name)
 
         for i in self.inherits:
             i['table'] = get_full_name(i['table_schema'], i['table_name'])
@@ -23,6 +25,12 @@ class Table (Item):
         if self.attach:
             self.attach.update(self.inherits[0])
             self.inherits = []
+
+        for c in self.columns:
+            c['grants'] = acl_to_grants(c['acl'],
+                                        'column',
+                                        self.full_name,
+                                        c['name'])
 
         for fk in self.foreign_keys:
             fk['ftable'] = get_full_name(fk['ftable_schema'],

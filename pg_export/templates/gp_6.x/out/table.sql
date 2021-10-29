@@ -57,12 +57,12 @@ alter table only {{ attach.table }} attach partition {{ full_name }}
   {%- endif %};
 {%- endif %}
 
-{%- if acl and acl|acl_to_grants('table', full_name) or columns|selectattr('acl')|first() %}
-{% if acl %}
-{{ acl|acl_to_grants('table', full_name) }}
+{%- if grants or columns|selectattr('grants')|first() %}
+{% if grants %}
+{{ grants }}
 {%- endif %}
-{%- for c in columns if c.acl %}
-{{ c.acl|acl_to_grants('column', full_name, c.name) }}
+{%- for c in columns if c.grants %}
+{{ c.grants }}
 {%- endfor %}
 {%- endif %}
 

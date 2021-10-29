@@ -12,8 +12,9 @@ create type {{ full_name }} as (
 );
 {%- endif %}
 
-{%- if acl %}
-{{ acl|acl_to_grants('type', full_name) }}
+{%- if grants %}
+
+{{ grants }}
 {%- endif %}
 
 {%- if comment or columns|selectattr('comment')|first() %}

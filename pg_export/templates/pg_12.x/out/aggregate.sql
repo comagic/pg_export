@@ -68,9 +68,10 @@ create aggregate {{ full_name }}({% include 'out/_argument.sql' %}) (
   parallel = safe
 {%- endif %}
 );
-{%- if acl %}
 
-{{ acl|acl_to_grants('function', signature) }}
+{%- if grants %}
+
+{{ grants }}
 {%- endif %}
 
 {%- if comment %}

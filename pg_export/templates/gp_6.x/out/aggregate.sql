@@ -50,9 +50,10 @@ create aggregate {{ full_name }}({% include 'out/_argument.sql' %}) (
   hypothetical
 {%- endif %}
 );
-{%- if acl %}
 
-{{ acl|acl_to_grants('function', signature) }}
+{%- if grants %}
+
+{{ grants }}
 {%- endif %}
 
 {%- if comment %}

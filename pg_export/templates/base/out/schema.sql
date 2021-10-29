@@ -2,9 +2,9 @@
 create schema {{ name }};
 {%- endif %}
 
-{%- if acl %}
+{%- if grants %}
 
-{{ acl|acl_to_grants('schema', name) }}
+{{ grants }}
 {%- endif %}
 
 {%- if comment %}
