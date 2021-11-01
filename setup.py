@@ -52,6 +52,7 @@ tests_require = [
     'pytest-asyncio',
     'pytest-sugar',
     'asynctest',
+    'importlib-metadata<4.3'
 ]
 
 
