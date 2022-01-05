@@ -69,5 +69,7 @@ def main():
             await asyncio.wait(e.extract_structure())
             await asyncio.wait(e.dump_directories(args.out_dir))
 
+    if os.name == 'nt':
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     loop = asyncio.get_event_loop()
     loop.run_until_complete(go())
