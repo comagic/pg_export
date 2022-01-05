@@ -4,7 +4,9 @@ from pg_export.acl import acl_to_grants
 
 class Type (Item):
     template = 'out/type.sql'
+    src_query = 'in/type.sql'
     directory = 'types'
+    is_schema_object = True
 
     def __init__(self, src, version):
         super(Type, self).__init__(src, version)

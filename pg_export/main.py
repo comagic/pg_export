@@ -1,7 +1,9 @@
 import os
 import shutil
 import argparse
-import psycopg2
+import asyncio
+from psycopg.rows import dict_row
+from psycopg_pool import AsyncConnectionPool
 from pg_export.extractor import Extractor
 
 
@@ -22,6 +24,9 @@ def main():
                             type=str, help='user for connect db')
     arg_parser.add_argument('-W', '--password',
                             type=str, help='password for connect db')
+    arg_parser.add_argument('-j', '--jobs',
+                            type=int, help='number of connections',
+                            default=4)
     arg_parser.add_argument('dbname', help='source databese name')
     arg_parser.add_argument('out_dir', help='directory for object files')
     args = arg_parser.parse_args()
@@ -40,12 +45,29 @@ def main():
             arg_parser.error('distination directory not empty '
                              '(you can use option --clean)')
 
-    db_connect = psycopg2.connect(dbname=args.dbname,
-                                  host=args.host,
-                                  port=args.port,
-                                  user=args.username,
-                                  password=args.password)
+    coninfo = ''
+    if args.dbname:
+        coninfo += ' dbname=' + args.dbname
+    if args.host:
+        coninfo += ' host=' + args.host
+    if args.port:
+        coninfo += ' port=' + args.port
+    if args.username:
+        coninfo += ' username=' + args.username
+    if args.password:
+        coninfo += ' password=' + args.password
 
-    e = Extractor(db_connect)
-    e.dump_structure(args.out_dir)
-    e.dump_directory(args.out_dir)
+    async def go():
+        async with AsyncConnectionPool(coninfo,
+                                       kwargs={"row_factory": dict_row,
+                                               "autocommit": True},
+                                       min_size=args.jobs,
+                                       max_size=args.jobs) as pool:
+            e = Extractor(pool, args.out_dir)
+            await e.create_renderer()
+            await e.get_directories()
+            await asyncio.wait(e.extract_structure())
+            await asyncio.wait(e.dump_directories(args.out_dir))
+
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(go())

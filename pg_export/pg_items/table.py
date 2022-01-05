@@ -6,6 +6,8 @@ from pg_export.acl import acl_to_grants
 class Table (Item):
     template = 'out/table.sql'
     directory = 'tables'
+    src_query = 'in/table.sql'
+    is_schema_object = True
 
     def __init__(self, src, version):
         super(Table, self).__init__(src, version)

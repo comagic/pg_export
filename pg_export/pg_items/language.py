@@ -3,5 +3,6 @@ from pg_export.pg_items.item import Item
 
 class Language (Item):
     template = 'out/language.sql'
+    src_query = 'in/language.sql'
     directory = 'languages'
     schema = '.'

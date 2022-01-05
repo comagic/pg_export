@@ -4,6 +4,7 @@ from pg_export.acl import acl_to_grants
 
 class Server (Item):
     template = 'out/server.sql'
+    src_query = 'in/server.sql'
     directory = 'servers'
     schema = '.'
 

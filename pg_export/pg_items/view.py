@@ -5,6 +5,8 @@ from pg_export.acl import acl_to_grants
 class View (Item):
     template = 'out/view.sql'
     directory = 'views'
+    src_query = 'in/view.sql'
+    is_schema_object = True
 
     def __init__(self, src, version):
         super(View, self).__init__(src, version)

@@ -4,8 +4,10 @@ from pg_export.acl import acl_to_grants
 
 class Function (Item):
     template = 'out/function.sql'
+    src_query = 'in/function.sql'
     template_signature = 'out/_signature.sql'
     directory = 'functions'
+    is_schema_object = True
 
     def __init__(self, src, version):
         super(Function, self).__init__(src, version)
