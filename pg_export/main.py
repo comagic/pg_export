@@ -1,9 +1,9 @@
+import json
 import os
 import shutil
 import argparse
 import asyncio
-from psycopg.rows import dict_row
-from psycopg_pool import AsyncConnectionPool
+import asyncpg
 from pg_export.extractor import Extractor
 
 
@@ -58,16 +58,37 @@ def main():
         coninfo += ' password=' + args.password
 
     async def go():
-        async with AsyncConnectionPool(coninfo,
-                                       kwargs={"row_factory": dict_row,
-                                               "autocommit": True},
-                                       min_size=args.jobs,
-                                       max_size=args.jobs) as pool:
+
+        async def init_conn(conn):
+            # Для каждого нового конекта будем устанавливать кодеки
+            async with conn.transaction():
+                await conn.set_type_codec(
+                    'json',
+                    encoder=json.dumps,
+                    decoder=json.loads,
+                    schema='pg_catalog'
+                )
+                await conn.set_type_codec(
+                    'jsonb',
+                    encoder=json.dumps,
+                    decoder=json.loads,
+                    schema='pg_catalog'
+                )
+
+        async with asyncpg.create_pool(
+            'postgres://{}:{}@{}:{}/{}'.format(
+                args.username, args.password, args.host, args.port, args.dbname
+            ),
+            init=init_conn,
+            command_timeout=60
+        ) as pool:
             e = Extractor(pool, args.out_dir)
             await e.create_renderer()
             await e.get_directories()
             await asyncio.wait(e.extract_structure())
-            await asyncio.wait(e.dump_directories(args.out_dir))
+            directories = e.dump_directories(args.out_dir)
+            if directories:
+                await asyncio.wait(e.dump_directories(args.out_dir))
 
     if os.name == 'nt':
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())

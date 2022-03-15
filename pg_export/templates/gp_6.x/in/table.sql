@@ -10,7 +10,7 @@ with w_subpartition_template as (
              'end_inclusive', p.partitionendinclusive,
              'every', case
                         when ts_range.start is not null
-                          then format('''%%s''::interval', age(ts_range.end, ts_range.start))
+                          then format('''%s''::interval', age(ts_range.end, ts_range.start))
                         when int_range.start is not null
                           then (int_range.end - int_range.start)::text
                       end) order by partitionrangestart)::jsonb as subpartition_template
@@ -38,7 +38,7 @@ w_partitions as (
                'end_inclusive', p.partitionendinclusive,
                'every', case
                           when ts_range.start is not null
-                            then format('''%%s''::interval', age(ts_range.end, ts_range.start))
+                            then format('''%s''::interval', age(ts_range.end, ts_range.start))
                           when int_range.start is not null
                             then (int_range.end - int_range.start)::text
                         end) order by partitionrangestart)::jsonb as partitions
@@ -64,7 +64,7 @@ select quote_ident(n.nspname) as schema,
        c.relacl as acl,
        c.relpersistence = 'u' as unlogged,
        c.reloptions as options,
-       (select array_agg(format('%%s %%L',
+       (select array_agg(format('%s %L',
                                 split_part(u, '=', 1),
                                 split_part(u, '=', 2)))
           from unnest(ft.ftoptions) u) as foreign_options,
@@ -102,7 +102,7 @@ select quote_ident(n.nspname) as schema,
                             cd.adnum = a.attnum
                   {% with objid='c.oid', objclass='pg_class', objsubid='a.attnum' -%} {% include 'in/_join_description_as_d.sql' %} {% endwith %}
                  cross join format_type(a.atttypid, a.atttypmod) as ft(type)
-                 cross join lateral (select pg_get_expr(cd.adbin, cd.adrelid) like 'nextval(%%' and
+                 cross join lateral (select pg_get_expr(cd.adbin, cd.adrelid) like 'nextval(%' and
                                             pg_get_serial_sequence(n.nspname||'.'||c.relname, a.attname) is not null) as s(is_serial)
                  where a.attrelid = c.oid and
                        a.attnum > 0 and
@@ -276,7 +276,7 @@ select quote_ident(n.nspname) as schema,
             spar.paristemplate
   {% with objid='c.oid', objclass='pg_class' -%} {% include 'in/_join_description_as_d.sql' %} {% endwith %}
  where c.relkind in ('r', 'p', 'f') and
-       abs(hashint4(c.oid::integer)) %% 4 = {{ chunk }} and
+       abs(hashint4(c.oid::integer)) % 4 = {{ chunk }} and
        n.nspname not in ('pg_catalog', 'information_schema', 'pg_bitmapindex') and
        c.relname not in (select partitiontablename
                            from pg_partitions) and

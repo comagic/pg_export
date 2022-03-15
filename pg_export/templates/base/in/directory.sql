@@ -7,4 +7,4 @@ select n.nspname as schema,
     join pg_namespace n on t.relnamespace = n.oid
    cross join obj_description(t.oid) as d(description)
    where relkind = 'r' and
-         d.description like '%%synchronized directory%%'
+         d.description like '%synchronized directory%'

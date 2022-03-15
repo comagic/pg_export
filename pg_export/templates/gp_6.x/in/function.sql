@@ -37,6 +37,6 @@ select quote_ident(n.nspname) as schema,
          on tn.oid = t.typnamespace
   {% with objid='p.oid', objclass='pg_proc' -%} {% include 'in/_join_description_as_d.sql' %} {% endwith %}
  where n.nspname not in ('pg_catalog', 'pg_toast', 'information_schema') and
-       abs(hashtext(p.proname)) %% 4 = {{ chunk }} and
+       abs(hashtext(p.proname)) % 4 = {{ chunk }} and
        {% with objid='p.oid', objclass='pg_proc' %} {% include 'in/_not_part_of_extension.sql' %} {% endwith %}
  order by 1, 2, arguments

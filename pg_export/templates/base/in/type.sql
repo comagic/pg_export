@@ -22,7 +22,7 @@ select quote_ident(n.nspname) as schema,
        (c.relkind is null
         or
         c.relkind = 'c') and
-       t.typname not like e'\\_%%' and -- implicit array
+       t.typname not like e'\\_%' and -- implicit array
        t.typtype <> 'd'            and -- domain
        {% with objid='t.oid', objclass='pg_type' %} {% include 'in/_not_part_of_extension.sql' %} {% endwith %}
  order by 1, 2

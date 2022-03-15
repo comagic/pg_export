@@ -3,7 +3,7 @@
 import os
 import re
 import asyncio
-import aiofiles
+from pg_export.pg_items import item
 from pg_export.renderer import Renderer
 from pg_export.pg_items.cast import Cast
 from pg_export.pg_items.extension import Extension
@@ -25,10 +25,8 @@ class Extractor:
         self.root = root
 
     async def sql_execute(self, query, **params):
-        async with self.pool.connection() as con:
-            async with con.cursor() as cur:
-                await cur.execute(query, params)
-                return await cur.fetchall()
+        async with self.pool.acquire() as con:
+            return await con.fetch(query, *params)
 
     async def get_version(self):
         version = (await self.sql_execute('select version()'))[0]['version']
@@ -54,7 +52,8 @@ class Extractor:
 
     async def dump_item(self, item_class, chunk=None):
         src = await self.sql_execute(
-                        item_class.get_src_query(self.renderer, chunk))
+            item_class.get_src_query(self.renderer, chunk)
+        )
 
         if item_class in [Function, Aggregate, Operator]:
             groups = {}
@@ -116,14 +115,9 @@ class Extractor:
         else:
             query = 'select * from %s order by 1' % table_name
 
-        async with self.pool.connection() as con:
-            async with con.cursor() as cur:
-                async with cur.copy("copy (%s) to stdout" % query) as copy:
-                    async with aiofiles.open(path, 'w', encoding="utf-8") as f:
-                        await f.write('copy %s from stdin;\n' % table_name)
-                        while data := await copy.read():
-                            await f.write(str(data, 'utf8'))
-                        await f.write('\\.\n')
+        async with self.pool.acquire() as con:
+            with open(path, 'w', encoding="utf-8") as f:
+                await con.copy_from_query(query, output=f)
 
     def dump_directories(self, root):
         if not self.directories:

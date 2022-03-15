@@ -41,9 +41,8 @@ setup_requires = []
 # Что нужно для установки
 install_requires = [
     'aiofiles>=0.7',
-    'psycopg>=3.0',
-    'psycopg-pool>=3.0',
-    'Jinja2>=3.0'
+    'Jinja2>=3.0',
+    'asyncpg==0.25.0'
 ]
 
 
