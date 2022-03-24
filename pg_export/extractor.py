@@ -3,6 +3,7 @@
 import os
 import re
 import asyncio
+import aiofiles
 from pg_export.pg_items import item
 from pg_export.renderer import Renderer
 from pg_export.pg_items.cast import Cast
@@ -116,8 +117,10 @@ class Extractor:
             query = 'select * from %s order by 1' % table_name
 
         async with self.pool.acquire() as con:
-            with open(path, 'w', encoding="utf-8") as f:
-                await con.copy_from_query(query, output=f)
+            async with aiofiles.open(path, 'wb') as f:
+                await f.write(f'copy {table_name} from stdin;\n'.encode())
+                await con.copy_from_query(query, output=f.write)
+                await f.write(b'\\.\n')
 
     def dump_directories(self, root):
         if not self.directories:

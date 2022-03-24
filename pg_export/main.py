@@ -7,6 +7,9 @@ import asyncpg
 from pg_export.extractor import Extractor
 
 
+asyncpg.protocol.BUILTIN_TYPE_NAME_MAP['"char"'] = 18  # fix bug in asyncpg
+
+
 def main():
     arg_parser = argparse.ArgumentParser(
         description='Export structure of databese to object '
@@ -20,14 +23,14 @@ def main():
                             type=str, help='host for connect db')
     arg_parser.add_argument('-p', '--port',
                             type=str, help='port for connect db')
-    arg_parser.add_argument('-U', '--username',
+    arg_parser.add_argument('-U', '--user',
                             type=str, help='user for connect db')
     arg_parser.add_argument('-W', '--password',
                             type=str, help='password for connect db')
     arg_parser.add_argument('-j', '--jobs',
                             type=int, help='number of connections',
                             default=4)
-    arg_parser.add_argument('dbname', help='source databese name')
+    arg_parser.add_argument('database', help='source databese name')
     arg_parser.add_argument('out_dir', help='directory for object files')
     args = arg_parser.parse_args()
 
@@ -45,50 +48,42 @@ def main():
             arg_parser.error('distination directory not empty '
                              '(you can use option --clean)')
 
-    coninfo = ''
-    if args.dbname:
-        coninfo += ' dbname=' + args.dbname
-    if args.host:
-        coninfo += ' host=' + args.host
-    if args.port:
-        coninfo += ' port=' + args.port
-    if args.username:
-        coninfo += ' username=' + args.username
-    if args.password:
-        coninfo += ' password=' + args.password
+    async def init_conn(conn):
+        await conn.set_type_codec(
+            'json',
+            encoder=json.dumps,
+            decoder=json.loads,
+            schema='pg_catalog'
+        )
+        await conn.set_type_codec(
+            'jsonb',
+            encoder=json.dumps,
+            decoder=json.loads,
+            schema='pg_catalog'
+        )
+        await conn.set_type_codec(
+            '"char"',
+            encoder=lambda x: x,
+            decoder=lambda x: x,
+            schema='pg_catalog'
+        )
 
     async def go():
-
-        async def init_conn(conn):
-            # Для каждого нового конекта будем устанавливать кодеки
-            async with conn.transaction():
-                await conn.set_type_codec(
-                    'json',
-                    encoder=json.dumps,
-                    decoder=json.loads,
-                    schema='pg_catalog'
-                )
-                await conn.set_type_codec(
-                    'jsonb',
-                    encoder=json.dumps,
-                    decoder=json.loads,
-                    schema='pg_catalog'
-                )
-
         async with asyncpg.create_pool(
-            'postgres://{}:{}@{}:{}/{}'.format(
-                args.username, args.password, args.host, args.port, args.dbname
-            ),
-            init=init_conn,
-            command_timeout=60
+            database=args.database,
+            user=args.user,
+            password=args.password,
+            host=args.host,
+            port=args.port,
+            min_size=args.jobs,
+            max_size=args.jobs,
+            init=init_conn
         ) as pool:
             e = Extractor(pool, args.out_dir)
             await e.create_renderer()
             await e.get_directories()
-            await asyncio.wait(e.extract_structure())
-            directories = e.dump_directories(args.out_dir)
-            if directories:
-                await asyncio.wait(e.dump_directories(args.out_dir))
+            await asyncio.wait(e.extract_structure() +
+                               e.dump_directories(args.out_dir))
 
     if os.name == 'nt':
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
