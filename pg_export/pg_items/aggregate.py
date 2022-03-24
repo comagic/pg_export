@@ -1,4 +1,4 @@
-from pg_export.pg_items.function import Function
+from .function import Function
 
 
 class Aggregate (Function):

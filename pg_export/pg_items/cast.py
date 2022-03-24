@@ -1,4 +1,4 @@
-from pg_export.pg_items.item import Item
+from .item import Item
 
 
 class Cast (Item):

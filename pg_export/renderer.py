@@ -5,8 +5,7 @@ import os
 import aiofiles
 import asyncio
 from jinja2 import Environment, FileSystemLoader
-from pg_export.filters import (untype_default, ljust,
-                               rjust, join_attr, concat_items)
+from .filters import untype_default, ljust, rjust, join_attr, concat_items
 
 
 MAX_OPEN_FILE = 100

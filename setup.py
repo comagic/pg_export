@@ -48,6 +48,7 @@ install_requires = [
 
 # Что нужно для запуска python setup.py test
 tests_require = [
+    'flake8<4',
     'pytest',
     'pytest-cov',
     'pytest-flake8',

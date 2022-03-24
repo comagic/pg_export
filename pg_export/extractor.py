@@ -1,23 +1,20 @@
-# -*- coding:utf-8 -*-
-
 import os
 import re
 import asyncio
 import aiofiles
-from pg_export.pg_items import item
-from pg_export.renderer import Renderer
-from pg_export.pg_items.cast import Cast
-from pg_export.pg_items.extension import Extension
-from pg_export.pg_items.language import Language
-from pg_export.pg_items.server import Server
-from pg_export.pg_items.schema import Schema
-from pg_export.pg_items.type import Type
-from pg_export.pg_items.view import View
-from pg_export.pg_items.table import Table
-from pg_export.pg_items.sequence import Sequence
-from pg_export.pg_items.function import Function
-from pg_export.pg_items.aggregate import Aggregate
-from pg_export.pg_items.operator import Operator
+from .renderer import Renderer
+from .pg_items.cast import Cast
+from .pg_items.extension import Extension
+from .pg_items.language import Language
+from .pg_items.server import Server
+from .pg_items.schema import Schema
+from .pg_items.type import Type
+from .pg_items.view import View
+from .pg_items.table import Table
+from .pg_items.sequence import Sequence
+from .pg_items.function import Function
+from .pg_items.aggregate import Aggregate
+from .pg_items.operator import Operator
 
 
 class Extractor:

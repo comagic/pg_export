@@ -1,5 +1,4 @@
-from pg_export.pg_items.item import Item
-from pg_export.acl import acl_to_grants
+from .item import Item
 
 
 class Sequence (Item):
@@ -10,4 +9,4 @@ class Sequence (Item):
 
     def __init__(self, src, version):
         super(Sequence, self).__init__(src, version)
-        self.grants = acl_to_grants(self.acl, 'sequence', self.full_name)
+        self.grants = self.acl_to_grants(self.acl, 'sequence', self.full_name)

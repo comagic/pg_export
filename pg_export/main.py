@@ -4,7 +4,7 @@ import shutil
 import argparse
 import asyncio
 import asyncpg
-from pg_export.extractor import Extractor
+from .extractor import Extractor
 
 
 asyncpg.protocol.BUILTIN_TYPE_NAME_MAP['"char"'] = 18  # fix bug in asyncpg

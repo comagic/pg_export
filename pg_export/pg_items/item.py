@@ -1,5 +1,6 @@
 import os
-import pg_export.filters as filters
+from pg_export.filters import get_full_name
+from pg_export.acl import acl_to_grants
 
 
 class Item (object):
@@ -26,7 +27,7 @@ class Item (object):
         self.__dict__.update(src)
         self.renderer = renderer
         if 'schema' in self.__dict__ and 'name' in self.__dict__:
-            self.full_name = filters.get_full_name(self.schema, self.name)
+            self.full_name = get_full_name(self.schema, self.name)
 
     async def dump(self, root):
         directory = os.path.join(root,
@@ -41,3 +42,9 @@ class Item (object):
 
     def render(self, template):
         return self.renderer.render(template, self.__dict__)
+
+    def get_full_name(self, *params):
+        return get_full_name(*params)
+
+    def acl_to_grants(self, *params):
+        return acl_to_grants(*params)
