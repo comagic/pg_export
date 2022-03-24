@@ -77,6 +77,7 @@ def main():
             port=args.port,
             min_size=args.jobs,
             max_size=args.jobs,
+            statement_cache_size=0,
             init=init_conn
         ) as pool:
             e = Extractor(pool, args.out_dir)
