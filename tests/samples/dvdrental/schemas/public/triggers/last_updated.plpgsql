@@ -1,0 +1,5 @@
+create or replace function last_updated() returns trigger as $$
+BEGIN
+    NEW.last_update = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END $$ language plpgsql;
