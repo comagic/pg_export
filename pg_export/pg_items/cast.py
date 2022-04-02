@@ -1,8 +1,9 @@
-from pg_export.pg_items.item import Item
+from .item import Item
 
 
 class Cast (Item):
     template = 'out/cast.sql'
+    src_query = 'in/cast.sql'
     directory = 'casts'
     schema = '.'
 

@@ -1,10 +1,12 @@
-from pg_export.pg_items.item import Item
+from .item import Item
 
 
 class Operator (Item):
     template = 'out/operator.sql'
+    src_query = 'in/operator.sql'
     directory = 'operators'
+    is_schema_object = True
 
-    def dump(self, root):
+    async def dump(self, root):
         self.name = 'operators'
-        super(Operator, self).dump(root)
+        await super(Operator, self).dump(root)

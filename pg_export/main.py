@@ -1,8 +1,13 @@
+import json
 import os
 import shutil
 import argparse
-import psycopg2
-from pg_export.extractor import Extractor
+import asyncio
+import asyncpg
+from .extractor import Extractor
+
+
+asyncpg.protocol.BUILTIN_TYPE_NAME_MAP['"char"'] = 18  # fix bug in asyncpg
 
 
 def main():
@@ -18,11 +23,14 @@ def main():
                             type=str, help='host for connect db')
     arg_parser.add_argument('-p', '--port',
                             type=str, help='port for connect db')
-    arg_parser.add_argument('-U', '--username',
+    arg_parser.add_argument('-U', '--user',
                             type=str, help='user for connect db')
     arg_parser.add_argument('-W', '--password',
                             type=str, help='password for connect db')
-    arg_parser.add_argument('dbname', help='source databese name')
+    arg_parser.add_argument('-j', '--jobs',
+                            type=int, help='number of connections',
+                            default=4)
+    arg_parser.add_argument('database', help='source databese name')
     arg_parser.add_argument('out_dir', help='directory for object files')
     args = arg_parser.parse_args()
 
@@ -40,12 +48,45 @@ def main():
             arg_parser.error('distination directory not empty '
                              '(you can use option --clean)')
 
-    db_connect = psycopg2.connect(dbname=args.dbname,
-                                  host=args.host,
-                                  port=args.port,
-                                  user=args.username,
-                                  password=args.password)
+    async def init_conn(conn):
+        await conn.set_type_codec(
+            'json',
+            encoder=json.dumps,
+            decoder=json.loads,
+            schema='pg_catalog'
+        )
+        await conn.set_type_codec(
+            'jsonb',
+            encoder=json.dumps,
+            decoder=json.loads,
+            schema='pg_catalog'
+        )
+        await conn.set_type_codec(
+            '"char"',
+            encoder=lambda x: x,
+            decoder=lambda x: x,
+            schema='pg_catalog'
+        )
 
-    e = Extractor(db_connect)
-    e.dump_structure(args.out_dir)
-    e.dump_directory(args.out_dir)
+    async def go():
+        async with asyncpg.create_pool(
+            database=args.database,
+            user=args.user,
+            password=args.password,
+            host=args.host,
+            port=args.port,
+            min_size=args.jobs,
+            max_size=args.jobs,
+            statement_cache_size=0,
+            init=init_conn
+        ) as pool:
+            e = Extractor(pool, args.out_dir)
+            await e.create_renderer()
+            await e.get_directories()
+            await asyncio.wait(e.extract_structure() +
+                               e.dump_directories(args.out_dir))
+
+    if os.name == 'nt':
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(go())

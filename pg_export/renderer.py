@@ -2,25 +2,26 @@
 
 import sys
 import os
+import aiofiles
+import asyncio
 from jinja2 import Environment, FileSystemLoader
-from pg_export.filters import (untype_default, ljust,
-                               rjust, join_attr, concat_items)
+from .filters import untype_default, ljust, rjust, join_attr, concat_items
+
+
+MAX_OPEN_FILE = 100
 
 
 class Renderer:
     def __init__(self, fork, version):
+        self.open_file_limiter = asyncio.Semaphore(MAX_OPEN_FILE)
         base_path = os.path.join(os.path.dirname(__file__), 'templates')
-
         path = [fork + '.'.join(version)]
         for i in reversed(range(1, len(version))):
             path.append(fork + '.'.join(version[:i] + ('x',)))
-
         path = [os.path.join(base_path, p) for p in path]
-
         if not any(os.path.isdir(p) for p in path):
             raise Exception('Version not suported: template not found:\n' +
                             '\n'.join(path))
-
         path.append(os.path.join(base_path, 'base'))
 
         self.env = Environment(
@@ -49,10 +50,10 @@ class Renderer:
             raise
         return res
 
-    def render_to_file(self, template_name, context, file_name):
+    async def render_to_file(self, template_name, context, file_name):
         if isinstance(file_name, tuple):
             file_name = self.join_path(*file_name)
         if os.path.isfile(file_name):
             open(file_name, 'a', newline='\n').write('\n')
-        open(file_name, 'ab').write(
-            self.render(template_name, context).encode('utf8'))
+        async with self.open_file_limiter, aiofiles.open(file_name, 'ab') as f:
+            await f.write(self.render(template_name, context).encode('utf8'))

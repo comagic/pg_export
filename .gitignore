@@ -8,3 +8,4 @@
 .report*
 build*
 .pytest_cache*
+venv
