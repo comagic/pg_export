@@ -11,6 +11,7 @@ class View (Item):
         super(View, self).__init__(src, version)
         self.grants = self.acl_to_grants(self.acl, 'table', self.full_name)
         self.query = self.query[:-1]  # drop ";"
+        self.triggers = self.triggers or []
 
         if self.kind == 'm':
             self.directory = 'materializedviews'
@@ -20,3 +21,10 @@ class View (Item):
                                              'column',
                                              self.full_name,
                                              c['name'])
+
+        for t in self.triggers:
+            t['function'] = self.get_full_name(t['function_schema'],
+                                               t['function_name'])
+            if t['ftable_name']:
+                t['ftable'] = self.get_full_name(t['ftable_schema'],
+                                                 t['ftable_name'])
