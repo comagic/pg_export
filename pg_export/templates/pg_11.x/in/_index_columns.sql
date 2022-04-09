@@ -1,7 +1,7 @@
 select json_agg(
          json_build_object(
            'name', pg_get_indexdef(idx.indexrelid, i::int, true),
-           'order', format('%%s%%s',
+           'order', format('%s%s',
                            case
                              when (u.option & {{ INDOPTION_DESC }}) <> 0
                                then ' desc'

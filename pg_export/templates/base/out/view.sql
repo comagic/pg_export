@@ -53,3 +53,4 @@ create {%- if t.constraint %} constraint {%- endif %} trigger {{ t.name }}
 {%- endfor %}
 
 {%- include 'out/_index.sql' %}
+
