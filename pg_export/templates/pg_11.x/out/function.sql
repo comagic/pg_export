@@ -16,7 +16,7 @@ create or replace
 {%- if leakproof == 's' %} leakproof {%- endif %}
 {%- if strict %} strict {%- endif %}
 {%- if security_definer %} security definer {%- endif %}
-{%- if parallel == 'r' %} parallel restrict {%- endif %}
+{%- if parallel == 'r' %} parallel restricted {%- endif %}
 {%- if parallel == 's' %} parallel safe {%- endif %}
 {%- if cost != 100 %} cost {{ cost }} {%- endif %}
 {%- if rows != 1000 and setof %} rows {{ rows }} {%- endif %}
