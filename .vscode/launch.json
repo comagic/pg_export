@@ -1,0 +1,27 @@
+{
+    // Используйте IntelliSense, чтобы узнать о возможных атрибутах.
+    // Наведите указатель мыши, чтобы просмотреть описания существующих атрибутов.
+    // Для получения дополнительной информации посетите: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "pg_export",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "python": "${workspaceFolder}/venv/bin/python",
+            "program": "${workspaceFolder}/venv/bin/pg_export",
+            "args": [
+                "--host=10.1.200.49",
+                "--port=5432",
+                "--username=postgres",
+                "--password=postgres",
+                "--jobs=1",
+                "postgres",
+                "registrar",
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false
+        }
+    ]
+}
