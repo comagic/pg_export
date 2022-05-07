@@ -1,0 +1,4 @@
+include:
+  - project: lib/cicd
+    file: python/lib.gitlab-ci.yml
+    ref: master
