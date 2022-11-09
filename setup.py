@@ -42,7 +42,7 @@ setup_requires = []
 install_requires = [
     'aiofiles>=0.7',
     'Jinja2>=3.0',
-    'asyncpg==0.25.0'
+    'asyncpg==0.27.0'
 ]
 
 
@@ -54,6 +54,7 @@ tests_require = [
     'pytest-flake8==1.0.6',
     'pytest-asyncio==0.12.0',
     'asynctest==0.13.0',
+    'importlib-metadata<5.0',
 ]
 
 
