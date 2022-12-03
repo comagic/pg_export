@@ -47,7 +47,7 @@ select quote_ident(n.nspname) as schema,
                   {% with objid='c.oid', objclass='pg_class', objsubid='a.attnum' -%} {% include 'in/_join_description_as_d.sql' %} {% endwith %}
                  cross join format_type(a.atttypid, a.atttypmod) as ft(type)
                  cross join lateral (select pg_get_expr(cd.adbin, cd.adrelid) like 'nextval(%' and
-                                            pg_get_serial_sequence(n.nspname||'.'||c.relname, a.attname) is not null) as s(is_serial)
+                                            pg_get_serial_sequence(format('%I.%I', n.nspname, c.relname), a.attname) is not null) as s(is_serial)
                  where a.attrelid = c.oid and
                        a.attnum > 0 and
                        not a.attisdropped
