@@ -34,19 +34,16 @@ def main():
     arg_parser.add_argument('out_dir', help='directory for object files')
     args = arg_parser.parse_args()
 
-    if not os.access(args.out_dir, os.F_OK):
-        try:
-            os.mkdir(args.out_dir)
-        except Exception:
-            arg_parser.error("can not access to directory '%s'" % args.out_dir)
-
-    if os.listdir(args.out_dir):
+    if os.path.exists(args.out_dir) and os.listdir(args.out_dir):
         if args.clean:
-            for f in os.listdir(args.out_dir):
-                shutil.rmtree(os.path.join(args.out_dir, f))
+            shutil.rmtree(args.out_dir)
         else:
             arg_parser.error('distination directory not empty '
                              '(you can use option --clean)')
+    try:
+        os.makedirs(args.out_dir, exist_ok=True)
+    except Exception:
+        arg_parser.error("can not access to directory '%s'" % args.out_dir)
 
     async def init_conn(conn):
         await conn.set_type_codec(
