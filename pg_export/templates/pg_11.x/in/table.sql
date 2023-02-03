@@ -188,7 +188,9 @@ select quote_ident(n.nspname) as schema,
                   'from', substring(b.expr, '^FOR VALUES FROM \((.*)\) TO.*$'),
                   'to', substring(b.expr, '^FOR VALUES FROM .* TO \((.*)\)'),
                   'is_default', b.expr = 'DEFAULT')
-       end as attach
+       end as attach,
+       c.relreplident as replica_identity,
+       quote_ident(cr.relname) as replica_identity_index
   from pg_class c
  inner join pg_namespace n
          on n.oid = c.relnamespace
@@ -198,6 +200,12 @@ select quote_ident(n.nspname) as schema,
          on ft.ftrelid = c.oid
   left join pg_foreign_server fs
          on fs.oid = ft.ftserver
+  left join pg_index ir
+            inner join pg_class cr
+                    on cr.oid = ir.indexrelid
+         on ir.indrelid = c.oid and
+            ir.indisreplident and
+            c.relreplident = 'i'
   {% with objid='c.oid', objclass='pg_class' -%} {% include 'in/_join_description_as_d.sql' %} {% endwith %}
  cross join pg_get_expr(c.relpartbound, c.oid) as b(expr)
  where c.relkind in ('r', 'p', 'f') and

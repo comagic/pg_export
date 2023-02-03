@@ -119,6 +119,14 @@ create {%- if t.constraint %} constraint {%- endif %} trigger {{ t.name }}
 alter table {{ full_name }} cluster on {{ clustered_index }};
 {%- endif %}
 
+{%- if replica_identity != 'd' and kind != 'f' %}
+
+alter table {{ full_name }} replica identity
+  {%- if replica_identity == 'f' %} full {%- endif %}
+  {%- if replica_identity == 'n' %} nothing {%- endif %}
+  {%- if replica_identity == 'i' %} using index {{ replica_identity_index }} {%- endif %};
+{%- endif %}
+
 {%- if columns|selectattr('statistics')|first() %}
 {% for c in columns if c.statistics %}
 alter table only {{ full_name }} alter column {{ c.name }} set statistics {{ c.statistics }};
