@@ -5,6 +5,7 @@ import argparse
 import asyncio
 import asyncpg
 from .extractor import Extractor
+from . import __version__
 
 
 asyncpg.protocol.BUILTIN_TYPE_NAME_MAP['"char"'] = 18  # fix bug in asyncpg
@@ -16,6 +17,9 @@ def main():
                     'files for control version system',
         epilog='Report bugs to <a.n.d@inbox.ru>.',
         conflict_handler='resolve')
+    arg_parser.add_argument('--version',
+                            action='version',
+                            version=__version__)
     arg_parser.add_argument('--clean',
                             action="store_true",
                             help='clean out_dir if not empty')
