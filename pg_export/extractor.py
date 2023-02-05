@@ -15,6 +15,7 @@ from .pg_items.sequence import Sequence
 from .pg_items.function import Function
 from .pg_items.aggregate import Aggregate
 from .pg_items.operator import Operator
+from .pg_items.publication import Publication
 
 
 class Extractor:
@@ -94,6 +95,7 @@ class Extractor:
             self.dump_item(Server),
             self.dump_item(Type),
             self.dump_item(View),
+            self.dump_item(Publication),
         ]
 
     async def get_directories(self):
