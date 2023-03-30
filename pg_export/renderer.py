@@ -20,7 +20,7 @@ class Renderer:
             path.append(fork + '.'.join(version[:i] + ('x',)))
         path = [os.path.join(base_path, p) for p in path]
         if not any(os.path.isdir(p) for p in path):
-            raise Exception('Version not suported: template not found:\n' +
+            raise Exception('Version not supported: template not found:\n' +
                             '\n'.join(path))
         path.append(os.path.join(base_path, 'base'))
 
@@ -38,7 +38,8 @@ class Renderer:
     def join_path(self, *items):
         return self.fix_bug_in_windows(os.path.join(*items))
 
-    def fix_bug_in_windows(self, path):
+    @staticmethod
+    def fix_bug_in_windows(path):
         return path.replace('\\', '/')
 
     def render(self, template_name, context):

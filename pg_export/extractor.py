@@ -1,7 +1,10 @@
+import json
 import os
 import re
 import asyncio
 import aiofiles
+import asyncpg
+
 from .renderer import Renderer
 from .pg_items.cast import Cast
 from .pg_items.extension import Extension
@@ -19,9 +22,48 @@ from .pg_items.publication import Publication
 
 
 class Extractor:
-    def __init__(self, pool, root):
-        self.pool = pool
-        self.root = root
+    pool: asyncpg.pool.Pool
+    renderer: Renderer
+    directories: list
+
+    def __init__(self, args):
+        self.args = args
+
+    async def init_pool(self):
+        async def init_conn(conn):
+            await conn.set_type_codec(
+                'json',
+                encoder=json.dumps,
+                decoder=json.loads,
+                schema='pg_catalog'
+            )
+            await conn.set_type_codec(
+                'jsonb',
+                encoder=json.dumps,
+                decoder=json.loads,
+                schema='pg_catalog'
+            )
+            await conn.set_type_codec(
+                '"char"',
+                encoder=lambda x: x,
+                decoder=lambda x: x,
+                schema='pg_catalog'
+            )
+
+        self.pool = await asyncpg.create_pool(
+                database=self.args.database,
+                user=self.args.user,
+                password=self.args.password,
+                host=self.args.host,
+                port=self.args.port,
+                min_size=self.args.jobs,
+                max_size=self.args.jobs,
+                statement_cache_size=0,
+                init=init_conn
+        )
+
+    async def close_pool(self):
+        await self.pool.close()
 
     async def sql_execute(self, query, **params):
         async with self.pool.acquire() as con:
@@ -47,7 +89,7 @@ class Extractor:
 
     async def ordered_dumps(self, item_class, items):
         for i in items:
-            await item_class(i, self.renderer).dump(self.root)
+            await item_class(i, self.renderer).dump(self.args.out_dir)
 
     async def dump_item(self, item_class, chunk=None):
         src = await self.sql_execute(
@@ -67,11 +109,14 @@ class Extractor:
             for i in groups.values():
                 if len(i) == 1:
                     tasks.append(
-                        item_class(i[0], self.renderer).dump(self.root))
+                        item_class(i[0], self.renderer).dump(self.args.out_dir))
                 else:
                     tasks.append(self.ordered_dumps(item_class, i))
         else:
-            tasks = [item_class(i, self.renderer).dump(self.root) for i in src]
+            tasks = [
+                item_class(i, self.renderer).dump(self.args.out_dir)
+                for i in src
+            ]
         if tasks:
             await asyncio.wait(tasks)
 
