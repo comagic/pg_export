@@ -94,9 +94,10 @@ class Extractor:
             await item_class(i, self.renderer).dump(self.args.out_dir)
 
     async def dump_item(self, item_class, chunk=None):
-        src = await self.sql_execute(
-            item_class.get_src_query(self.renderer, chunk)
-        )
+        query = item_class.get_src_query(self.renderer, chunk)
+        if self.args.echo_queries:
+            print(f'\n\n--{item_class.__name__}\n{query}')
+        src = await self.sql_execute(query)
 
         if item_class in [Function, Aggregate, Operator]:
             groups = {}

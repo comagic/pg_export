@@ -22,6 +22,9 @@ def main():
     arg_parser.add_argument('--clean',
                             action="store_true",
                             help='clean out_dir if not empty')
+    arg_parser.add_argument('--echo-queries',
+                            action="store_true",
+                            help='echo commands sent to server')
     arg_parser.add_argument('-h', '--host',
                             type=str, help='host for connect db')
     arg_parser.add_argument('-p', '--port',
