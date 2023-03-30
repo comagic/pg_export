@@ -49,6 +49,8 @@ class Extractor:
                 decoder=lambda x: x,
                 schema='pg_catalog'
             )
+            if self.args.timezone:
+                await conn.execute(f"set time zone '{self.args.timezone}'")
 
         self.pool = await asyncpg.create_pool(
                 database=self.args.database,

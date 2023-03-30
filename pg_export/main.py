@@ -33,6 +33,8 @@ def main():
     arg_parser.add_argument('-j', '--jobs',
                             type=int, help='number of connections',
                             default=4)
+    arg_parser.add_argument('-z', '--timezone',
+                            type=str, help='timezone for constraints, partitions etc.')
     arg_parser.add_argument('database', help='source database name')
     arg_parser.add_argument('out_dir', help='directory for object files')
     args = arg_parser.parse_args()
