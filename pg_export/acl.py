@@ -31,7 +31,8 @@ grant_all_pattern = {
     'sequence':       'Urw',
     'schema':         'UC',
     'tablespace':     'C',
-    'type':           'U'
+    'type':           'U',
+    'domain':         'U',
 }
 
 function_public_acl = ['=X/postgres', '=X/gpadmin']

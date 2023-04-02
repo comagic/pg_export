@@ -19,6 +19,7 @@ from .pg_items.function import Function
 from .pg_items.aggregate import Aggregate
 from .pg_items.operator import Operator
 from .pg_items.publication import Publication
+from .pg_items.domain import Domain
 
 
 class Extractor:
@@ -142,6 +143,7 @@ class Extractor:
             self.dump_item(Sequence),
             self.dump_item(Server),
             self.dump_item(Type),
+            self.dump_item(Domain),
             self.dump_item(View),
             self.dump_item(Publication),
         ]

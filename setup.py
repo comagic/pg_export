@@ -7,7 +7,7 @@ PACKAGE_TYPE = 'pg-tools'
 PACKAGE_NAME = 'pg-export'
 PACKAGE_DESC = 'pg to git converter'
 PACKAGE_LONG_DESC = 'Convert postgres database to directory with object files'
-PACKAGE_VERSION = '3.3.0'
+PACKAGE_VERSION = '3.4.0'
 
 
 class PyTest(TestCommand):
@@ -33,20 +33,14 @@ class PyTest(TestCommand):
         sys.exit(errno)
 
 
-# Что нужно для запуска python setup.py <any_cmd>
-# Используем ручной запуск с помощью класса PyTest
 setup_requires = []
 
-
-# Что нужно для установки
 install_requires = [
     'aiofiles>=0.7',
     'Jinja2>=3.0',
     'asyncpg==0.27.0'
 ]
 
-
-# Что нужно для запуска python setup.py test
 tests_require = [
     'flake8==3.8.3',
     'pytest==5.4.3',
@@ -57,12 +51,9 @@ tests_require = [
     'importlib-metadata<5.0',
 ]
 
-
-# Скрипты
 console_scripts = [
     'pg_export=pg_export.main:main'
 ]
-
 
 setup(
     name=PACKAGE_NAME,
