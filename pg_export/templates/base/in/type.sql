@@ -17,7 +17,7 @@ select quote_ident(n.nspname) as schema,
          on n.oid = t.typnamespace
   left join pg_class c
          on c.oid = t.typrelid
-  {% with objid='c.oid', objclass='pg_class' -%} {% include 'in/_join_description_as_d.sql' %} {% endwith %}
+  {% with objid='t.oid', objclass='pg_type' -%} {% include 'in/_join_description_as_d.sql' %} {% endwith %}
  where n.nspname not in ('pg_catalog', 'pg_toast', 'information_schema') and
        (c.relkind is null
         or
