@@ -122,7 +122,7 @@ class Extractor:
                 for i in src
             ]
         if tasks:
-            await asyncio.wait(tasks)
+            await asyncio.wait([asyncio.create_task(i) for i in tasks])
 
     def extract_structure(self):
         return [
