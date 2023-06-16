@@ -25,9 +25,13 @@ select quote_ident(n.nspname) as schema,
                        quote_ident(coll.collname) as collate,
                        a.attnotnull and not s.is_serial as not_null,
                        case
-                         when not s.is_serial
+                         when not s.is_serial and a.attgenerated = ''
                            then pg_get_expr(cd.adbin, cd.adrelid)
                        end as default,
+                       case
+                         when a.attgenerated != ''
+                           then pg_get_expr(cd.adbin, cd.adrelid)
+                       end as generated_stored,
                        quote_literal(d.description) as comment,
                        a.attacl as acl,
                        nullif(a.attstattarget, -1) as statistics

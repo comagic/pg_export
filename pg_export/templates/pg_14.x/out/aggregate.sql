@@ -62,7 +62,7 @@ create aggregate {{ full_name }}({% include 'out/_argument.sql' %}) (
   hypothetical
 {%- endif %}
 {%- if parallel == 'r' %},
-  parallel = restrict
+  parallel = restricted
 {%- endif %}
 {%- if parallel == 's' %},
   parallel = safe
