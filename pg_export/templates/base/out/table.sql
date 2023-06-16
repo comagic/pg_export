@@ -99,6 +99,8 @@ alter table {{ full_name }} add constraint {{ c.name }}
   {%- if c.not_valid %} not valid {%- endif %};
 {%- endfor %}
 
+{%- include 'out/_rule.sql' %}
+
 {%- for t in triggers %}
 
 create {%- if t.constraint %} constraint {%- endif %} trigger {{ t.name }}

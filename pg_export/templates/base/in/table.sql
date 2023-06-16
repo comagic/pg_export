@@ -91,6 +91,7 @@ select quote_ident(n.nspname) as schema,
                                  on am.oid = i.relam
                          where cn.conrelid = c.oid) as x
                   group by 1) as x) as constraints,
+       ({% include 'in/_rule.sql' %}) as rules,
        ({% include 'in/_index.sql' %}) as indexes,
        (select quote_ident(i.relname)
           from pg_index idx

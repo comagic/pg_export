@@ -4,23 +4,7 @@ select quote_ident(n.nspname) as schema,
        c.relkind as kind,
        c.relacl::text[] as acl,
        pg_get_viewdef(c.oid, true) as query,
-       (select coalesce(json_agg(r), '[]')
-          from (select rw.rulename as name,
-                       case ev_type --ruleutils.c
-                         when '2'
-                           then 'u'
-                         when '3'
-                           then 'i'
-                         when '4'
-                           then 'd'
-                       end as event,
-                       is_instead as instead,
-                       (regexp_match(rd.def, ' (DO +|DO +INSTEAD +)(.*);'))[2] as query,
-                       (regexp_match(rd.def, ' WHERE +\((.*)\) +DO'))[1] as predicate
-                  from pg_rewrite rw
-                 cross join pg_get_ruledef(rw.oid) as rd(def)
-                 where rw.ev_class = c.oid and
-                       rw.ev_type <> '1') r) as rules,
+       ({% include 'in/_rule.sql' %}) as rules,
        ({% include 'in/_index.sql' %}) as indexes,
        (select json_agg(x)
           from (select quote_ident(tg.tgname) as name,
