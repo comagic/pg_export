@@ -7,7 +7,7 @@ PACKAGE_TYPE = 'pg-tools'
 PACKAGE_NAME = 'pg-export'
 PACKAGE_DESC = 'pg to git converter'
 PACKAGE_LONG_DESC = 'Convert postgres database to directory with object files'
-PACKAGE_VERSION = '3.5.0'
+PACKAGE_VERSION = '3.6.0'
 
 
 class PyTest(TestCommand):
