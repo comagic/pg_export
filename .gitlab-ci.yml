@@ -1,3 +1,5 @@
+variables:
+  BASE_IMAGE: harbor.uis.st/public/images:python-3.10
 include:
   - project: lib/cicd
     file: python/lib.gitlab-ci.yml
