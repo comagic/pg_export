@@ -21,18 +21,27 @@ def main():
                             version=__version__)
     arg_parser.add_argument('--clean',
                             action="store_true",
-                            help='clean out_dir if not empty')
+                            help='clean out_dir if not empty '
+                                 '(env variable PG_EXPORT_AUTOCLEAN=true)')
     arg_parser.add_argument('--echo-queries',
                             action="store_true",
                             help='echo commands sent to server')
     arg_parser.add_argument('-h', '--host',
-                            type=str, help='host for connect db')
+                            type=str,
+                            help='host for connect db '
+                                 '(env variable PG_HOST=<host>)')
     arg_parser.add_argument('-p', '--port',
-                            type=str, help='port for connect db')
+                            type=str,
+                            help='port for connect db '
+                                 '(env variable PG_PORT=<port>)')
     arg_parser.add_argument('-U', '--user',
-                            type=str, help='user for connect db')
+                            type=str,
+                            help='user for connect db '
+                                 '(env variable PG_USER=<user>)')
     arg_parser.add_argument('-W', '--password',
-                            type=str, help='password for connect db')
+                            type=str,
+                            help='password for connect db '
+                                 '(env variable PG_PASSWORD=<password>)')
     arg_parser.add_argument('-j', '--jobs',
                             type=int, help='number of connections',
                             default=4)
@@ -43,7 +52,7 @@ def main():
     args = arg_parser.parse_args()
 
     if os.path.exists(args.out_dir) and os.listdir(args.out_dir):
-        if args.clean:
+        if args.clean or os.environ.get('PG_EXPORT_AUTOCLEAN') == 'true':
             shutil.rmtree(args.out_dir)
         else:
             arg_parser.error('destination directory not empty '
