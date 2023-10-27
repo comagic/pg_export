@@ -14,10 +14,10 @@ class Function (Item):
         self.with_out_args = any(True
                                  for a in self.arguments
                                  if a['mode'] == 'o')
-        self.arguments_as_table = (len(self.arguments) > 1 and
-                                   any(True
-                                       for a in self.arguments
-                                       if a['name']))
+        self.arguments_as_table = (len(self.arguments) > 1
+                                   and any(True
+                                           for a in self.arguments
+                                           if a['name']))
         self.argument_max_length = max(
             [len('OUT' if a['mode'] == 'o' else
                  'INOUT' if a['mode'] == 'b' else
@@ -42,6 +42,7 @@ class Function (Item):
         if self.kind == 'p':
             self.directory = 'procedures'
         self.grants = self.acl_to_grants(
-                        self.acl,
-                        'procedure' if self.kind == 'p' else 'function',
-                        self.signature)
+            self.acl,
+            'procedure' if self.kind == 'p' else 'function',
+            self.signature
+        )

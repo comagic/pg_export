@@ -47,9 +47,11 @@ class Table (Item):
 
         if 'gp_partitions' in self.__dict__:
             self.gp_partitions = self.normalize_gp_partitions(
-                                    self.gp_partitions)
+                self.gp_partitions
+            )
             self.gp_subpartition_template = self.normalize_gp_partitions(
-                                                self.gp_subpartition_template)
+                self.gp_subpartition_template
+            )
 
     def get_constraints(self, type_char):
         return self.constraints.get(type_char, [])
@@ -64,9 +66,9 @@ class Table (Item):
 
             start = start or p['start']
 
-            if not (np is not None and
-                    p['every'] == np['every'] and
-                    p['end'] == np['start']):
+            if not (np is not None
+                    and p['every'] == np['every']
+                    and p['end'] == np['start']):
                 res.append({'start': start,
                             'start_inclusive': p['start_inclusive'],
                             'end': p['end'],

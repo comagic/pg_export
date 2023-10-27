@@ -20,8 +20,7 @@ class Renderer:
             path.append(fork + '.'.join(version[:i] + ('x',)))
         path = [os.path.join(base_path, p) for p in path]
         if not any(os.path.isdir(p) for p in path):
-            raise Exception('Version not supported: template not found:\n' +
-                            '\n'.join(path))
+            raise Exception('Version not supported: template not found:\n' + '\n'.join(path))
         path.append(os.path.join(base_path, 'base'))
 
         self.env = Environment(

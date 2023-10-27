@@ -68,8 +68,8 @@ def main():
         await e.create_renderer()
         await e.get_directories()
         await asyncio.gather(*(
-            e.extract_structure() +
-            e.dump_directories(args.out_dir)
+            e.extract_structure()
+            + e.dump_directories(args.out_dir)
         ))
         await e.close_pool()
 

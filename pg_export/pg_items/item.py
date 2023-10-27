@@ -15,13 +15,14 @@ class Item (object):
     is_schema_object = False
 
     @classmethod
-    def get_src_query(self, renderer, chunk):
+    def get_src_query(cls, renderer, chunk):
         return renderer.render(
-                    self.src_query,
-                    {'INDOPTION_DESC': self.INDOPTION_DESC,
-                     'INDOPTION_NULLS_FIRST': self.INDOPTION_NULLS_FIRST,
-                     'last_builtin_oid': self.last_builtin_oid,
-                     'chunk': chunk})
+            cls.src_query,
+            {'INDOPTION_DESC': cls.INDOPTION_DESC,
+             'INDOPTION_NULLS_FIRST': cls.INDOPTION_NULLS_FIRST,
+             'last_builtin_oid': cls.last_builtin_oid,
+             'chunk': chunk}
+        )
 
     def __init__(self, src, renderer):
         self.__dict__.update(src)

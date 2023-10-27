@@ -54,15 +54,15 @@ class Extractor:
                 await conn.execute(f"set time zone '{self.args.timezone}'")
 
         self.pool = await asyncpg.create_pool(
-                database=self.args.database,
-                user=self.args.user,
-                password=self.args.password,
-                host=self.args.host,
-                port=self.args.port,
-                min_size=self.args.jobs,
-                max_size=self.args.jobs,
-                statement_cache_size=0,
-                init=init_conn
+            database=self.args.database,
+            user=self.args.user,
+            password=self.args.password,
+            host=self.args.host,
+            port=self.args.port,
+            min_size=self.args.jobs,
+            max_size=self.args.jobs,
+            statement_cache_size=0,
+            init=init_conn
         )
 
     async def close_pool(self):
@@ -82,8 +82,7 @@ class Extractor:
             if match:
                 version = 'pg_', match.groups()
             else:
-                raise Exception('Could not determine the version number: ' +
-                                version)
+                raise Exception('Could not determine the version number: ' + version)
         return version
 
     async def create_renderer(self):

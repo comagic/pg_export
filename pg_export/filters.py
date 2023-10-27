@@ -5,9 +5,9 @@ def get_full_name(schema, name):
 
 
 def untype_default(default, column_type):
-    return default.replace("'::"+column_type, "'") \
-                  .replace("'::public."+column_type[-1], "'") \
-                  .replace("'::"+column_type.split('.')[-1], "'")
+    return default.replace("'::" + column_type, "'") \
+                  .replace("'::public." + column_type[-1], "'") \
+                  .replace("'::" + column_type.split('.')[-1], "'")
 
 
 def ljust(string, width, fillchar):

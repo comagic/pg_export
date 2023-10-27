@@ -37,7 +37,7 @@ grant_all_pattern = {
 
 function_public_acl = ['=X/postgres', '=X/gpadmin']
 
-grant_all_pattern_with_grant_option = {k: '*'.join(v)+'*'
+grant_all_pattern_with_grant_option = {k: '*'.join(v) + '*'
                                        for k, v in grant_all_pattern.items()}
 
 
