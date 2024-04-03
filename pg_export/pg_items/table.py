@@ -6,6 +6,11 @@ class Table (Item):
     directory = 'tables'
     src_query = 'in/table.sql'
     is_schema_object = True
+    columns: list
+    attach: dict
+    inherits: list[dict]
+    kind: str
+    constraints: dict
 
     def __init__(self, src, version):
         super(Table, self).__init__(src, version)
@@ -56,7 +61,8 @@ class Table (Item):
     def get_constraints(self, type_char):
         return self.constraints.get(type_char, [])
 
-    def normalize_gp_partitions(self, partitions):
+    @staticmethod
+    def normalize_gp_partitions(partitions):
         res = []
         np = None
         start = None

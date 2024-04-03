@@ -13,6 +13,9 @@ class Item (object):
     directory = None
     ext = '.sql'
     is_schema_object = False
+    acl: list[str]
+    schema: str
+    name: str
 
     @classmethod
     def get_src_query(cls, renderer, chunk):
@@ -44,8 +47,10 @@ class Item (object):
     def render(self, template):
         return self.renderer.render(template, self.__dict__)
 
-    def get_full_name(self, *params):
+    @staticmethod
+    def get_full_name(*params):
         return get_full_name(*params)
 
-    def acl_to_grants(self, *params):
+    @staticmethod
+    def acl_to_grants(*params):
         return acl_to_grants(*params)
