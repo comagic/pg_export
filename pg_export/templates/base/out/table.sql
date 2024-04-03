@@ -78,7 +78,8 @@ alter table {{ full_name }} add constraint {{ fk.name }}
 {%- for u in uniques %}
 
 alter table {{ full_name }} add constraint {{ u.name }}
-  unique {% with idx_columns=u.idx_columns %} {%- include 'out/_index_columns.sql' %} {%- endwith %}
+  unique {% if u.nulls_not_distinct -%}nulls not distinct {% endif %}
+  {%- with idx_columns=u.idx_columns %} {%- include 'out/_index_columns.sql' %} {%- endwith %}
   {%- if u.deferrable %} deferrable {%- endif %}
   {%- if u.deferred %} initially deferred {%- endif %};
 {%- endfor %}

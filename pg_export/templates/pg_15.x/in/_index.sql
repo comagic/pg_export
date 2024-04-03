@@ -1,6 +1,7 @@
 select coalesce(json_agg(x), '[]')
   from (select quote_ident(i.relname) as name,
                idx.indisunique as is_unique,
+               idx.indnullsnotdistinct as nulls_not_distinct,
                am.amname as access_method,
                i.reloptions as options,
                pg_get_expr(idx.indpred, idx.indrelid) as predicate,
