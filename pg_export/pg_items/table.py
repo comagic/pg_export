@@ -8,7 +8,7 @@ class Table (Item):
     is_schema_object = True
     columns: list
     attach: dict
-    inherits: list[dict]
+    inherits: list
     kind: str
     constraints: dict
 

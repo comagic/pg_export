@@ -13,7 +13,7 @@ class Item (object):
     directory = None
     ext = '.sql'
     is_schema_object = False
-    acl: list[str]
+    acl: list
     schema: str
     name: str
 
