@@ -6,12 +6,10 @@ from setuptools.command.test import test as TestCommand
 PACKAGE_TYPE = 'pg-tools'
 PACKAGE_NAME = 'pg-export'
 PACKAGE_DESC = 'pg to git converter'
-PACKAGE_LONG_DESC = 'Convert postgres database to directory with object files'
-PACKAGE_VERSION = '3.6.0'
+PACKAGE_VERSION = '3.7.3'
 
 
 class PyTest(TestCommand):
-
     user_options = [('pytest-args=', 'a', "Arguments to pass to pytest")]
 
     def initialize_options(self):
@@ -42,7 +40,7 @@ install_requires = [
 ]
 
 tests_require = [
-    'flake8>=4,<5',
+    'flake8>=5,<6',
     'pytest',
     'pytest-cov',
     'pytest-flake8',
@@ -55,39 +53,44 @@ console_scripts = [
     'pg_export=pg_export.main:main'
 ]
 
+
+def readme():
+    with open('README.md', 'r') as f:
+        return f.read()
+
+
 setup(
     name=PACKAGE_NAME,
     version=PACKAGE_VERSION,
     description=PACKAGE_DESC,
-    long_description=PACKAGE_LONG_DESC,
-    url='https://git.dev.uiscom.ru/{}/{}'.format(PACKAGE_TYPE, PACKAGE_NAME),
+    long_description=readme(),
+    long_description_content_type='text/markdown',
+    url='https://github.com/comagic/pg_export',
+    project_urls={
+        'Documentation': 'https://github.com/comagic/pg_export/blob/master/README.md',
+        'Bug Tracker': 'https://github.com/comagic/pg_export/issues',
+    },
     author="Andrey Chernyakov",
     author_email="a.chernyakov@comagic.dev",
-    license="Nodefined",
+    license="BSD",
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Environment :: Console',
-        'Framework :: Pytest',
-        'Intended Audience :: Customer Service',
-        'Intended Audience :: Information Technology',
-        'License :: Other/Proprietary License',
-        'License :: UIS License',
-        'Natural Language :: Russian',
-        'Natural Language :: English',
-        'Operating System :: POSIX',
-        'Programming Language :: Python :: 3.5',
+        'Operating System :: OS Independent',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
     ],
     zip_safe=False,
     packages=find_packages(exclude=['tests', 'examples', '.reports']),
     entry_points={'console_scripts': console_scripts},
-    python_requires='>=3.5',
+    python_requires='>=3.6',
     setup_requires=setup_requires,
     install_requires=install_requires,
     tests_require=tests_require,
     cmdclass={'test': PyTest},
+    keywords='postgresql,git,ci/cd',
     include_package_data=True
 )

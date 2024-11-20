@@ -1,4 +1,4 @@
-# pg-export
+## pg-export - pg to git converter
 
 Export structure of database to object files for control version system
 
@@ -41,7 +41,9 @@ schemas:
 
 ## installation
 
+```
 pip install pg-export
+```
 
 ## usage
 
@@ -69,4 +71,6 @@ options:
 
 ## examples
 
+```
 pg_export -h 127.0.0.1 -p 5432 -U postgres -j 4 my_database /tmp/my_database_structure/
+```
