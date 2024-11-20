@@ -38,7 +38,7 @@ setup_requires = []
 install_requires = [
     'aiofiles>=0.7',
     'Jinja2>=3.0',
-    'asyncpg==0.27.0'
+    'asyncpg>=0.27.0,<0.31.0',
 ]
 
 tests_require = [
