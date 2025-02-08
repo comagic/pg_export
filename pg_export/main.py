@@ -14,7 +14,7 @@ def main():
     arg_parser = argparse.ArgumentParser(
         description='Export structure of database to object '
                     'files for control version system',
-        epilog='Report bugs to <a.n.d@inbox.ru>.',
+        epilog='Report bugs: https://github.com/comagic/pg_export/issues',
         conflict_handler='resolve')
     arg_parser.add_argument('--version',
                             action='version',

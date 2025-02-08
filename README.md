@@ -48,7 +48,9 @@ pip install pg-export
 ## usage
 
 ```
-usage: pg_export [--help] [--version] [--clean] [--echo-queries] [-h HOST] [-p PORT] [-U USER] [-W PASSWORD] [-j JOBS] [-z TIMEZONE] database out_dir
+usage: pg_export [--help] [--version] [--clean] [--ignore-version] [--echo-queries] [-h HOST] [-p PORT] [-U USER] [-W PASSWORD] [-j JOBS] [-z TIMEZONE] [-n SCHEMA] [-N EXCLUDE_SCHEMA] database out_dir
+
+Export structure of database to object files for control version system
 
 positional arguments:
   database              source database name
@@ -58,6 +60,7 @@ options:
   --help                show this help message and exit
   --version             show program's version number and exit
   --clean               clean out_dir if not empty (env variable PG_EXPORT_AUTOCLEAN=true)
+  --ignore-version      try exporting an unsupported server version
   --echo-queries        echo commands sent to server
   -h HOST, --host HOST  host for connect db (env variable PG_HOST=<host>)
   -p PORT, --port PORT  port for connect db (env variable PG_PORT=<port>)
@@ -67,6 +70,10 @@ options:
   -j JOBS, --jobs JOBS  number of connections
   -z TIMEZONE, --timezone TIMEZONE
                         timezone for constraints, partitions etc.
+  -n SCHEMA, --schema SCHEMA
+                        dump the specified schema(s) only
+  -N EXCLUDE_SCHEMA, --exclude-schema EXCLUDE_SCHEMA
+                        do NOT dump the specified schema(s)
 ```
 
 ## examples
