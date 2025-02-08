@@ -20,3 +20,4 @@ select quote_ident(n.nspname) as schema,
                     where dep.objid = c.oid and
                           dep.classid = 'pg_class'::regclass and
                           dep.deptype in ('a', 'e'))
+       {%- include 'in/_namespace_filter.sql' %}

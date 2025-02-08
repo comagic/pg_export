@@ -47,6 +47,10 @@ def main():
                             default=4)
     arg_parser.add_argument('-z', '--timezone',
                             type=str, help='timezone for constraints, partitions etc.')
+    arg_parser.add_argument('-n', '--schema',
+                            type=str, action='append', help='dump the specified schema(s) only', default=[])
+    arg_parser.add_argument('-N', '--exclude-schema',
+                            type=str, action='append', help='do NOT dump the specified schema(s)', default=[])
     arg_parser.add_argument('database', help='source database name')
     arg_parser.add_argument('out_dir', help='directory for object files')
     args = arg_parser.parse_args()

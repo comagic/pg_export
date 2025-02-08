@@ -22,4 +22,5 @@ select quote_ident(n.nspname) as schema,
  where n.nspname not in ('pg_catalog', 'pg_toast', 'information_schema') and
        t.typtype = 'd' and
        {% with objid='t.oid', objclass='pg_type' %} {% include 'in/_not_part_of_extension.sql' %} {% endwith %}
+       {%- include 'in/_namespace_filter.sql' %}
  order by 1, 2

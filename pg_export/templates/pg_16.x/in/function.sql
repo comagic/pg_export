@@ -40,4 +40,5 @@ select quote_ident(n.nspname) as schema,
        p.prokind in ('f', 'p', 'w') and
        abs(hashtext(p.proname)) % 4 = {{ chunk }} and
        {% with objid='p.oid', objclass='pg_proc' %} {% include 'in/_not_part_of_extension.sql' %} {% endwith %}
+       {%- include 'in/_namespace_filter.sql' %}
  order by 1, 2, arguments

@@ -281,4 +281,5 @@ select quote_ident(n.nspname) as schema,
        c.relname not in (select partitiontablename
                            from pg_partitions) and
        {% with objid='c.oid', objclass='pg_class' %} {% include 'in/_not_part_of_extension.sql' %} {% endwith %}
+       {%- include 'in/_namespace_filter.sql' %}
  order by 1, 2

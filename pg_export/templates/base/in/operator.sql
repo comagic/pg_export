@@ -20,4 +20,5 @@ select quote_ident(n.nspname) as schema,
   {% with objid='o.oid', objclass='pg_operator' -%} {% include 'in/_join_description_as_d.sql' %} {% endwith %}
  where n.nspname not in ('pg_catalog', 'pg_toast', 'information_schema') and
        {% with objid='o.oid', objclass='pg_operator' %} {% include 'in/_not_part_of_extension.sql' %} {% endwith %}
+       {%- include 'in/_namespace_filter.sql' %}
  order by 1, 2, 5, 6

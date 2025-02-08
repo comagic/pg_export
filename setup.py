@@ -6,7 +6,7 @@ from setuptools.command.test import test as TestCommand
 PACKAGE_TYPE = 'pg-tools'
 PACKAGE_NAME = 'pg-export'
 PACKAGE_DESC = 'pg to git converter'
-PACKAGE_VERSION = '3.7.4'
+PACKAGE_VERSION = '3.8.0'
 
 
 class PyTest(TestCommand):

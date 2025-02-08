@@ -29,6 +29,17 @@ class Extractor:
 
     def __init__(self, args):
         self.args = args
+        self.include_schemas, self.exclude_schemas = self.get_include_exclude_schemas()
+
+    def get_include_exclude_schemas(self):
+        include_schemas = set(self.args.schema)
+        exclude_schemas = set(self.args.exclude_schema)
+        if include_schemas and exclude_schemas:
+            include_schemas = include_schemas - exclude_schemas
+            exclude_schemas = set()
+        include_schemas = ', '.join(f"'{s}'" for s in include_schemas)
+        exclude_schemas = ', '.join(f"'{s}'" for s in exclude_schemas)
+        return include_schemas, exclude_schemas
 
     async def init_pool(self):
         async def init_conn(conn):
@@ -94,7 +105,12 @@ class Extractor:
             await item_class(i, self.renderer).dump(self.args.out_dir)
 
     async def dump_item(self, item_class, chunk=None):
-        query = item_class.get_src_query(self.renderer, chunk)
+        query = item_class.get_src_query(
+            self.renderer,
+            chunk=chunk,
+            include_schemas=self.include_schemas,
+            exclude_schemas=self.exclude_schemas
+        )
         if self.args.echo_queries:
             print(f'\n\n--{item_class.__name__}\n{query}')
         src = await self.sql_execute(query)

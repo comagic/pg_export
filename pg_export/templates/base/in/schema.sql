@@ -6,4 +6,5 @@ select quote_ident(n.nspname) as name,
  where n.nspname !~ '^pg_' and
        n.nspname <> 'information_schema' and
        {% with objid='n.oid', objclass='pg_namespace' %} {% include 'in/_not_part_of_extension.sql' %} {% endwith %}
+       {%- include 'in/_namespace_filter.sql' %}
  order by 1

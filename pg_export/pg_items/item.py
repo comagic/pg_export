@@ -18,13 +18,15 @@ class Item (object):
     name: str
 
     @classmethod
-    def get_src_query(cls, renderer, chunk):
+    def get_src_query(cls, renderer, **kwargs):
         return renderer.render(
             cls.src_query,
-            {'INDOPTION_DESC': cls.INDOPTION_DESC,
-             'INDOPTION_NULLS_FIRST': cls.INDOPTION_NULLS_FIRST,
-             'last_builtin_oid': cls.last_builtin_oid,
-             'chunk': chunk}
+            dict(
+                INDOPTION_DESC=cls.INDOPTION_DESC,
+                INDOPTION_NULLS_FIRST=cls.INDOPTION_NULLS_FIRST,
+                last_builtin_oid=cls.last_builtin_oid,
+                **kwargs
+            )
         )
 
     def __init__(self, src, renderer):

@@ -25,4 +25,5 @@ select quote_ident(n.nspname) as schema,
        not (t.typname like e'\\_%' and typcategory = 'A') and -- implicit array
        t.typtype <> 'd'            and -- domain
        {% with objid='t.oid', objclass='pg_type' %} {% include 'in/_not_part_of_extension.sql' %} {% endwith %}
+       {%- include 'in/_namespace_filter.sql' %}
  order by 1, 2
