@@ -3,10 +3,12 @@ import sys
 from setuptools import find_packages, setup
 from setuptools.command.test import test as TestCommand
 
+from pg_export import __version__
+
 PACKAGE_TYPE = 'pg-tools'
 PACKAGE_NAME = 'pg-export'
 PACKAGE_DESC = 'pg to git converter'
-PACKAGE_VERSION = '3.8.0'
+PACKAGE_VERSION = __version__
 
 
 class PyTest(TestCommand):

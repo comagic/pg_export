@@ -26,6 +26,12 @@ class Extractor:
     pool: asyncpg.pool.Pool
     renderer: Renderer
     directories: list
+    fork: str  # postgresql / greenplum
+    version: tuple  # (17, 2)
+    compatible_version = {
+        'postgresql': (11, 16),
+        'greenplum': (6, 6)
+    }
 
     def __init__(self, args):
         self.args = args
@@ -40,6 +46,22 @@ class Extractor:
         include_schemas = ', '.join(f"'{s}'" for s in include_schemas)
         exclude_schemas = ', '.join(f"'{s}'" for s in exclude_schemas)
         return include_schemas, exclude_schemas
+
+    def check_version(self):
+        if self.args.ignore_version:
+            return
+        range = self.compatible_version[self.fork]
+        if not range[0] <= self.version[0] <= range[1]:
+            version = ".".join(map(str, self.version))
+            raise Exception(f'Version {version} not supported (only {range[0]}.x - {range[1]}.x)'
+                            f', use --ignore-version to trying export anyway')
+
+    async def init(self):
+        await self.init_pool()
+        self.fork, self.version = await self.get_version()
+        print(self.fork, self.version)
+        self.check_version()
+        self.renderer = Renderer(self.fork)
 
     async def init_pool(self):
         async def init_conn(conn):
@@ -87,18 +109,15 @@ class Extractor:
         version = (await self.sql_execute('select version()'))[0]['version']
         match = re.match('.*Greenplum Database (\\d+).(\\d+).(\\d+)', version)
         if match:
-            version = 'gp_', match.groups()
+            fork = 'greenplum'
         else:
             match = re.match('PostgreSQL (\\d+).(\\d+)', version)
             if match:
-                version = 'pg_', match.groups()
+                fork = 'postgresql'
             else:
                 raise Exception('Could not determine the version number: ' + version)
-        return version
-
-    async def create_renderer(self):
-        fork, version = await self.get_version()
-        self.renderer = Renderer(fork, version)
+        version = tuple(map(int, match.groups()))
+        return fork, version
 
     async def ordered_dumps(self, item_class, items):
         for i in items:
@@ -109,7 +128,9 @@ class Extractor:
             self.renderer,
             chunk=chunk,
             include_schemas=self.include_schemas,
-            exclude_schemas=self.exclude_schemas
+            exclude_schemas=self.exclude_schemas,
+            fork=self.fork,
+            version=self.version,
         )
         if self.args.echo_queries:
             print(f'\n\n--{item_class.__name__}\n{query}')

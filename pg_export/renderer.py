@@ -12,21 +12,17 @@ MAX_OPEN_FILE = 100
 
 
 class Renderer:
-    def __init__(self, fork, version):
+    def __init__(self, fork):
         self.open_file_limiter = asyncio.Semaphore(MAX_OPEN_FILE)
         base_path = os.path.join(os.path.dirname(__file__), 'templates')
-        path = [fork + '.'.join(version)]
-        for i in reversed(range(1, len(version))):
-            path.append(fork + '.'.join(version[:i] + ('x',)))
-        path = [os.path.join(base_path, p) for p in path]
-        if not any(os.path.isdir(p) for p in path):
-            raise Exception('Version not supported: template not found:\n' + '\n'.join(path))
-        path.append(os.path.join(base_path, 'base'))
+        paths = [os.path.join(base_path, 'postgresql')]
+        if fork == 'greenplum':
+            paths.insert(0, os.path.join(base_path, 'greenplum'))
 
         self.env = Environment(
             loader=FileSystemLoader([
                 self.join_path(os.path.dirname(__file__), 'templates', p)
-                for p in path]))
+                for p in paths]))
 
         self.env.filters['untype_default'] = untype_default
         self.env.filters['ljust'] = ljust

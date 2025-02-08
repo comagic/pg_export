@@ -23,6 +23,9 @@ def main():
                             action="store_true",
                             help='clean out_dir if not empty '
                                  '(env variable PG_EXPORT_AUTOCLEAN=true)')
+    arg_parser.add_argument('--ignore-version',
+                            action="store_true",
+                            help='try exporting an unsupported server version')
     arg_parser.add_argument('--echo-queries',
                             action="store_true",
                             help='echo commands sent to server')
@@ -68,8 +71,7 @@ def main():
 
     async def go():
         e = Extractor(args)
-        await e.init_pool()
-        await e.create_renderer()
+        await e.init()
         await e.get_directories()
         await asyncio.gather(*(
             e.extract_structure()
