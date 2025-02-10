@@ -59,7 +59,6 @@ class Extractor:
     async def init(self):
         await self.init_pool()
         self.fork, self.version = await self.get_version()
-        print(self.fork, self.version)
         self.check_version()
         self.renderer = Renderer(self.fork)
 
