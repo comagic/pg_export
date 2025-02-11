@@ -15,9 +15,9 @@ with w_subpartition_template as (
                           then (int_range.end - int_range.start)::text
                       end) order by partitionrangestart)::jsonb as subpartition_template
     from pg_partitions p
-    left join lateral (select substring(p.partitionrangestart, '^''(.*)''::timestamp.*$')::timestamp as start,
-                              substring(p.partitionrangeend, '^''(.*)''::timestamp.*$')::timestamp as end
-                        where p.partitionrangestart ~ '^''(.*)''::timestamp.*$') as ts_range
+    left join lateral (select substring(p.partitionrangestart, '^''(.*)''::(timestamp|date).*$')::timestamp as start,
+                              substring(p.partitionrangeend, '^''(.*)''::(timestamp|date).*$')::timestamp as end
+                        where p.partitionrangestart ~ '^''(.*)''::(timestamp|date).*$') as ts_range
            on true
     left join lateral (select p.partitionrangestart::integer as start,
                               p.partitionrangeend::integer as end
@@ -43,9 +43,9 @@ w_partitions as (
                             then (int_range.end - int_range.start)::text
                         end) order by partitionrangestart)::jsonb as partitions
     from pg_partitions p
-    left join lateral (select substring(p.partitionrangestart, '^''(.*)''::timestamp.*$')::timestamp as start,
-                              substring(p.partitionrangeend, '^''(.*)''::timestamp.*$')::timestamp as end
-                        where p.partitionrangestart ~ '^''(.*)''::timestamp.*$') as ts_range
+    left join lateral (select substring(p.partitionrangestart, '^''(.*)''::(timestamp|date).*$')::timestamp as start,
+                              substring(p.partitionrangeend, '^''(.*)''::(timestamp|date).*$')::timestamp as end
+                        where p.partitionrangestart ~ '^''(.*)''::(timestamp|date).*$') as ts_range
            on true
     left join lateral (select p.partitionrangestart::integer as start,
                               p.partitionrangeend::integer as end
