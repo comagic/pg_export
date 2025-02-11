@@ -64,6 +64,7 @@ class Extractor:
 
     async def init_pool(self):
         async def init_conn(conn):
+            conn._reset_query = ''
             await conn.set_type_codec(
                 'json',
                 encoder=json.dumps,
