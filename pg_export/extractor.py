@@ -2,6 +2,8 @@ import json
 import os
 import re
 import asyncio
+import sys
+
 import aiofiles
 import asyncpg
 
@@ -204,7 +206,11 @@ class Extractor:
         async with self.pool.acquire() as con:
             async with aiofiles.open(path, 'wb') as f:
                 await f.write(f'copy {table_name} from stdin;\n'.encode())
-                await con.copy_from_query(query, output=f.write)
+                try:
+                    await con.copy_from_query(query, output=f.write)
+                except asyncpg.exceptions.PostgresError as e:
+                    print(f'Cannon export directory "{table_name}"\nerror: {str(e)}\nquery: {query}', file=sys.stderr)
+                    exit(1)
                 await f.write(b'\\.\n')
 
     def dump_directories(self, root):
