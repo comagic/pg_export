@@ -1,5 +1,6 @@
 select quote_ident(n.nspname) as schema,
        quote_ident(c.relname) as name,
+       quote_ident(sp.spcname) as tablespace,
        quote_literal(d.description) as comment,
        c.relacl::text[] as acl,
        c.relpersistence = 'u' as unlogged,
@@ -102,6 +103,9 @@ select quote_ident(n.nspname) as schema,
   from pg_class c
  inner join pg_namespace n
          on n.oid = c.relnamespace
+  left join pg_tablespace sp
+         on sp.oid =  c.reltablespace and
+            sp.spcname <> 'pg_default'
   left join pg_partitioned_table p
          on p.partrelid = c.oid
   left join pg_foreign_table ft

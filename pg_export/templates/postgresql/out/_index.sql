@@ -9,5 +9,10 @@ create {%- if i.is_unique %} unique {%- endif %} index {{ i.name }} on {{ full_n
   {%- if i.predicate %}
   where ({{ i.predicate }})
   {%- endif %}
-  {%- if i.options %} with ({{ i.options|join(', ') }}){%- endif %};
+  {%- if i.options %}
+  with ({{ i.options|join(', ') }})
+  {%- endif %}
+  {%- if i.tablespace %}
+  tablespace {{ i.tablespace }}
+  {%- endif %};
 {%- endfor %}

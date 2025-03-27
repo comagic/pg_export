@@ -19,6 +19,9 @@ server {{ server }}
 {%- endif %}
 {%- if foreign_options %}
 options ({{ foreign_options|join(', ') }})
+{%- endif %}
+{%- if tablespace %}
+tablespace {{ tablespace }}
 {%- endif %};
 
 {%- if attach %}

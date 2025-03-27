@@ -1,5 +1,6 @@
 select coalesce(json_agg(x), '[]')
   from (select quote_ident(i.relname) as name,
+               quote_ident(isp.spcname) as tablespace,
                idx.indisunique as is_unique,
                {%- if version[0] >= 15  %}
                idx.indnullsnotdistinct as nulls_not_distinct,
@@ -13,6 +14,9 @@ select coalesce(json_agg(x), '[]')
                  on i.oid = idx.indexrelid
          inner join pg_am am
                  on am.oid = i.relam
+          left join pg_tablespace isp
+                 on isp.oid =  i.reltablespace and
+                    isp.spcname <> 'pg_default'
           left join pg_constraint cn
                  on cn.conindid = i.oid and
                     cn.contype in ('p', 'u', 'x')
