@@ -32,19 +32,19 @@ def main():
     arg_parser.add_argument('-h', '--host',
                             type=str,
                             help='host for connect db '
-                                 '(env variable PG_HOST=<host>)')
+                                 '(env variable PGHOST=<host>)')
     arg_parser.add_argument('-p', '--port',
                             type=str,
                             help='port for connect db '
-                                 '(env variable PG_PORT=<port>)')
+                                 '(env variable PGPORT=<port>)')
     arg_parser.add_argument('-U', '--user',
                             type=str,
                             help='user for connect db '
-                                 '(env variable PG_USER=<user>)')
+                                 '(env variable PGUSER=<user>)')
     arg_parser.add_argument('-W', '--password',
                             type=str,
                             help='password for connect db '
-                                 '(env variable PG_PASSWORD=<password>)')
+                                 '(env variable PGPASSWORD=<password>)')
     arg_parser.add_argument('-j', '--jobs',
                             type=int, help='number of connections',
                             default=4)
