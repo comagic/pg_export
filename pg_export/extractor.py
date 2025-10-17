@@ -22,6 +22,8 @@ from .pg_items.aggregate import Aggregate
 from .pg_items.operator import Operator
 from .pg_items.publication import Publication
 from .pg_items.domain import Domain
+from .pg_items.event_trigger import EventTrigger
+
 
 
 class Extractor:
@@ -184,6 +186,7 @@ class Extractor:
             self.dump_item(Domain),
             self.dump_item(View),
             self.dump_item(Publication),
+            self.dump_item(EventTrigger),
         ]
 
     async def get_directories(self):
