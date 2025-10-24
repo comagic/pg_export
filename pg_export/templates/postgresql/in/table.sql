@@ -57,10 +57,18 @@ select quote_ident(n.nspname) as schema,
                  cross join format_type(a.atttypid, a.atttypmod) as ft(type)
                  cross join lateral (select pg_get_expr(cd.adbin, cd.adrelid) like 'nextval(%' and
                                             pg_get_serial_sequence(format('%I.%I', n.nspname, c.relname), a.attname) is not null) as s(is_serial)
+                  left join lateral (select pa.attnum, parent_level
+                                       from unnest(pr.parent_oids, pr.parent_levels) with ordinality as u(parent_oid, parent_level, i)
+                                      inner join pg_attribute pa
+                                              on pa.attrelid = u.parent_oid and
+                                                 pa.attname = a.attname
+                                      order by i
+                                      limit 1) pa
+                         on true
                  where a.attrelid = c.oid and
                        a.attnum > 0 and
                        not a.attisdropped
-                 order by a.attnum) as x) as columns,
+                 order by pa.parent_level desc nulls last, pa.attnum, a.attnum) as x) as columns,
        ({% include 'in/_constraint.sql' %}) as constraints,
        ({% include 'in/_rule.sql' %}) as rules,
        ({% include 'in/_index.sql' %}) as indexes,
@@ -118,6 +126,19 @@ select quote_ident(n.nspname) as schema,
          on ir.indrelid = c.oid and
             ir.indisreplident and
             c.relreplident = 'i'
+ cross join lateral (with recursive w_parent as (
+                       select i.inhrelid, i.inhparent, 1 as level
+                         from pg_inherits i
+                        where i.inhrelid = c.oid
+                       union all
+                       select i.inhrelid, i.inhparent, w.level + 1
+                         from w_parent w
+                        inner join pg_inherits i
+                                on i.inhrelid = w.inhparent
+                     )
+                     select array_agg(w.inhparent::regclass order by w.level desc) as parent_oids,
+                            array_agg(w.level order by w.level desc) as parent_levels
+                       from w_parent w) as pr
   {% with objid='c.oid', objclass='pg_class' -%} {% include 'in/_join_description_as_d.sql' %} {% endwith %}
  cross join pg_get_expr(c.relpartbound, c.oid) as b(expr)
  where c.relkind in ('r', 'p', 'f') and
