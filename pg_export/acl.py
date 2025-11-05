@@ -12,7 +12,8 @@ acl_map = {
     'U': 'usage',
     'C': 'create',
     'T': 'temp',
-    'c': 'connect'
+    'c': 'connect',
+    'm': 'maintain'
 }
 
 acl_order = 'rawdDxtXUCTc'
