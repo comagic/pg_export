@@ -33,7 +33,7 @@ class Extractor:
     fork: str  # postgresql / greenplum
     version: tuple  # (17, 2)
     compatible_version = {
-        'postgresql': (11, 16),
+        'postgresql': (11, 17),
         'greenplum': (6, 6)
     }
 
