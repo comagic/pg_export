@@ -7,6 +7,12 @@ class Function (Item):
     template_signature = 'out/_signature.sql'
     directory = 'functions'
     is_schema_object = True
+    # from src json:
+    arguments: list
+    columns: list
+    returns_type_name: str
+    language: str
+    kind: str
 
     def __init__(self, src, version):
         super(Function, self).__init__(src, version)

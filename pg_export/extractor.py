@@ -25,7 +25,6 @@ from .pg_items.domain import Domain
 from .pg_items.event_trigger import EventTrigger
 
 
-
 class Extractor:
     pool: asyncpg.pool.Pool
     renderer: Renderer

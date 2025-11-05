@@ -6,6 +6,9 @@ class Cast (Item):
     src_query = 'in/cast.sql'
     directory = 'casts'
     schema = '.'
+    # from src json:
+    source: str
+    target: str
 
     def __init__(self, src, version):
         super(Cast, self).__init__(src, version)

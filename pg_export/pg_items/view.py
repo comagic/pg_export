@@ -6,6 +6,9 @@ class View (Item):
     directory = 'views'
     src_query = 'in/view.sql'
     is_schema_object = True
+    # from src json:
+    columns: list
+    kind: str
 
     def __init__(self, src, version):
         super(View, self).__init__(src, version)

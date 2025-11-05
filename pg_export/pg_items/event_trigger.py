@@ -6,8 +6,9 @@ class EventTrigger (Item):
     src_query = 'in/event_trigger.sql'
     directory = 'event_triggers'
     schema = '.'
-    function_schema: str  # from src json
-    function_name: str  # from src json
+    # from src json:
+    function_schema: str
+    function_name: str
 
     def __init__(self, src, renderer):
         super().__init__(src, renderer)
