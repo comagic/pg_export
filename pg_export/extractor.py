@@ -90,7 +90,7 @@ class Extractor:
                 await conn.execute(f"set time zone '{self.args.timezone}'")
 
         self.pool = await asyncpg.create_pool(
-            database=self.args.database,
+            database=self.args.dbname,
             user=self.args.user,
             password=self.args.password,
             host=self.args.host,

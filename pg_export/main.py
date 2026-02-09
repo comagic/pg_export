@@ -54,9 +54,16 @@ def main():
                             type=str, action='append', help='dump the specified schema(s) only', default=[])
     arg_parser.add_argument('-N', '--exclude-schema',
                             type=str, action='append', help='do NOT dump the specified schema(s)', default=[])
-    arg_parser.add_argument('database', help='source database name')
+    arg_parser.add_argument('-d', '--dbname',
+                            type=str,
+                            dest='dbname_option',
+                            metavar='DBNAME',
+                            help='source database name '
+                                 '(env variable PGDATABASE=<dbname>)')
+    arg_parser.add_argument('dbname', help='source database name', nargs='?')
     arg_parser.add_argument('out_dir', help='directory for object files')
     args = arg_parser.parse_args()
+    args.dbname = args.dbname or args.dbname_option
 
     if os.path.exists(args.out_dir) and os.listdir(args.out_dir):
         if args.clean or os.environ.get('PG_EXPORT_AUTOCLEAN') == 'true':
