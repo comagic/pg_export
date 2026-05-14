@@ -60,10 +60,16 @@ def main():
                             metavar='DBNAME',
                             help='source database name '
                                  '(env variable PGDATABASE=<dbname>)')
+    arg_parser.add_argument('--skip-sequence-increment',
+                            action="store_true",
+                            help='do not export sequences increment '
+                                 '(env variable PG_EXPORT_SKIP_SEQUENCE_INCREMENT=true)')
     arg_parser.add_argument('dbname', help='source database name', nargs='?')
     arg_parser.add_argument('out_dir', help='directory for object files')
     args = arg_parser.parse_args()
     args.dbname = args.dbname or args.dbname_option
+    args.skip_sequence_increment = (args.skip_sequence_increment or
+                                    os.environ.get('PG_EXPORT_SKIP_SEQUENCE_INCREMENT') == 'true')
 
     if os.path.exists(args.out_dir) and os.listdir(args.out_dir):
         if args.clean or os.environ.get('PG_EXPORT_AUTOCLEAN') == 'true':

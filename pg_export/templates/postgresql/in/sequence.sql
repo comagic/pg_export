@@ -3,7 +3,11 @@ select quote_ident(n.nspname) as schema,
        quote_literal(d.description) as comment,
        c.relacl::text[] as acl,
        nullif(seqstart, 1) as start,
+       {%- if skip_sequence_increment %}
+       null as increment,
+       {%- else %}
        nullif(seqincrement, 1) as increment,
+       {%- endif %}
        nullif(seqmin, 1) as min,
        nullif(nullif(seqmax, 2^31-1), 2^63-1)::bigint as max,
        nullif(seqcache, 1) as cache,

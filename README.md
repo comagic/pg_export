@@ -48,7 +48,7 @@ pip install pg-export
 ## usage
 
 ```
-usage: pg_export [--help] [--version] [--clean] [--ignore-version] [--echo-queries] [-h HOST] [-p PORT] [-U USER] [-W PASSWORD] [-j JOBS] [-z TIMEZONE] [-n SCHEMA] [-N EXCLUDE_SCHEMA] [-d DBNAME] [dbname] out_dir
+usage: pg_export [--help] [--version] [--clean] [--ignore-version] [--echo-queries] [-h HOST] [-p PORT] [-U USER] [-W PASSWORD] [-j JOBS] [-z TIMEZONE] [-n SCHEMA] [-N EXCLUDE_SCHEMA] [-d DBNAME] [--skip-sequence-increment] [dbname] out_dir
 
 Export structure of database to object files for control version system
 
@@ -76,6 +76,8 @@ options:
                         do NOT dump the specified schema(s)
   -d DBNAME, --dbname DBNAME
                         source database name (env variable PGDATABASE=<dbname>)
+  --skip-sequence-increment
+                        do not export sequences increment (env variable PG_EXPORT_SKIP_SEQUENCE_INCREMENT=true)
 ```
 
 ## examples

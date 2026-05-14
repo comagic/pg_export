@@ -132,6 +132,7 @@ class Extractor:
             chunk=chunk,
             include_schemas=self.include_schemas,
             exclude_schemas=self.exclude_schemas,
+            skip_sequence_increment=self.args.skip_sequence_increment,
             fork=self.fork,
             version=self.version,
         )
