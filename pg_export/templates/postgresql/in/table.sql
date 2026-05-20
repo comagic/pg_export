@@ -55,7 +55,7 @@ select quote_ident(n.nspname) as schema,
                             cd.adnum = a.attnum
                   {% with objid='c.oid', objclass='pg_class', objsubid='a.attnum' -%} {% include 'in/_join_description_as_d.sql' %} {% endwith %}
                  cross join format_type(a.atttypid, a.atttypmod) as ft(type)
-                 cross join lateral (select pg_get_expr(cd.adbin, cd.adrelid) like 'nextval(%' and
+                 cross join lateral (select coalesce(pg_get_expr(cd.adbin, cd.adrelid) like 'nextval(%', false) and
                                             pg_get_serial_sequence(format('%I.%I', n.nspname, c.relname), a.attname) is not null) as s(is_serial)
                   left join lateral (select pa.attnum, parent_level
                                        from unnest(pr.parent_oids, pr.parent_levels) with ordinality as u(parent_oid, parent_level, i)
