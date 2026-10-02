@@ -38,7 +38,7 @@ setup_requires = []
 install_requires = [
     'aiofiles>=0.7',
     'Jinja2>=3.0',
-    'asyncpg>=0.27.0,<0.31.0',
+    'asyncpg>=0.27.0,<0.32.0',
 ]
 
 tests_require = [
@@ -79,16 +79,18 @@ setup(
         'Development Status :: 5 - Production/Stable',
         'Environment :: Console',
         'Operating System :: OS Independent',
-        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.12',
+        'Programming Language :: Python :: 3.13',
+        'Programming Language :: Python :: 3.14',
     ],
     zip_safe=False,
     packages=find_packages(exclude=['tests', 'examples', '.reports']),
     entry_points={'console_scripts': console_scripts},
-    python_requires='>=3.6',
+    python_requires='>=3.7',
     setup_requires=setup_requires,
     install_requires=install_requires,
     tests_require=tests_require,
